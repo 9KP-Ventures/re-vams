@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/texts/api";
+import { ApiResponse, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, PaginationParams } from "../app/constants/texts/api";
 
 export function createErrorResponse(message: string, status: number = 400) {
-  return NextResponse.json(
-    {
-      error: {
-        code: status,
-        message,
-      },
+  const errorResponse: ApiResponse<never> = {
+    error: {
+      code: status,
+      message,
     },
-    { status }
-  );
+  };
+
+  return NextResponse.json(errorResponse, { status });
 }
 
-export function createSuccessResponse(data: any, status: number = 200) {
-  return NextResponse.json(data, { status });
+export function createSuccessResponse<T>(data: T, status: number = 200) {
+  const successResponse: ApiResponse<T> = {
+    data,
+  };
+
+  return NextResponse.json(successResponse, { status });
 }
 
-export function getPaginationParams(request: NextRequest) {
+export function getPaginationParams(request: NextRequest): PaginationParams | null {
   const { searchParams } = new URL(request.url);
   const pageSize = Math.min(
     parseInt(searchParams.get("page[size]") || "") || DEFAULT_PAGE_SIZE,
@@ -35,8 +38,8 @@ export function getPaginationParams(request: NextRequest) {
   return { pageSize, page, from, to };
 }
 
-export function createPaginationResponse(
-  data: any[],
+export function createPaginationResponse<T extends Record<string, unknown>>(
+  data: T[],
   count: number | null,
   page: number,
   pageSize: number,
@@ -55,16 +58,19 @@ export function createPaginationResponse(
       ? `${baseUrl}?page[number]=${page - 1}&page[size]=${pageSize}`
       : null;
 
-  return {
-    [dataKey]: data.map(item =>
-      Object.fromEntries(
-        Object.entries(item).sort(([keyA], [keyB]) =>
-          keyA.localeCompare(keyB)
-        )
+  const sortedData = data.map(item =>
+    Object.fromEntries(
+      Object.entries(item).sort(([keyA], [keyB]) =>
+        keyA.localeCompare(keyB)
       )
-    ),
+    ) as T
+  );
+
+  return {
+    [dataKey]: sortedData,
+    data: sortedData,
     meta: {
-      total: count,
+      total: count || 0,
       page,
       page_size: pageSize,
       total_pages: totalPages,
