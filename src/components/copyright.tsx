@@ -1,6 +1,6 @@
 export default function Copyright() {
   return (
-    <div className="mt-8 text-center space-y-1">
+    <div className="pb-4 text-center space-y-1">
       <p className="text-sm text-muted-foreground">
         ReVAMS - Revenue and Attendance Management System <br />© 9KP Ventures
         2025

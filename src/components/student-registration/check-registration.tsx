@@ -76,13 +76,17 @@ export default function RegistrationCheck() {
       setStatus("found");
       // Redirect to verify page after a short delay
       setTimeout(() => {
-        router.push("/students/register/verify");
+        router.push(
+          `/students/register/verify?accepted-policy=true&student-id=${idNumber}`
+        );
       }, 1000);
     } else {
       setStatus("not-found");
       // Redirect to registration form after a short delay
       setTimeout(() => {
-        router.push("/students/register/form");
+        router.push(
+          `/students/register/form?accepted-policy=true&student-id=${idNumber}`
+        );
       }, 2000);
     }
   };
