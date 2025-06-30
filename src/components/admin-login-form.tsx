@@ -44,7 +44,7 @@ export default function AdminLoginForm() {
   };
 
   return (
-    <Card className="shadow-xl border-primary/30 rounded-3xl bg-gradient-to-br from-white to-amber-50">
+    <Card className="shadow-xl border-primary/30 rounded-3xl not-dark:bg-gradient-to-br from-white to-amber-50">
       <CardContent className="p-8 space-y-6">
         {/* Logo and Title */}
         <div className="text-center space-y-4">
