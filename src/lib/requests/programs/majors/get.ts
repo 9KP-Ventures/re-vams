@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -11,6 +12,14 @@ const getProgramMajorsSchema = z.object({
 });
 
 export type GetProgramMajorsData = z.infer<typeof getProgramMajorsSchema>;
+export type GetProgramMajorsDataSuccess = {
+  program: Tables<"programs">;
+  majors: Tables<"majors">[];
+  count: number;
+};
+export type GetProgramMajorsDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // GetProgramMajorsRequest Class

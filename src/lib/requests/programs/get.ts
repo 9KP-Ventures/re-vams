@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -15,6 +16,28 @@ const getProgramsSchema = z.object({
 });
 
 export type GetProgramsData = z.infer<typeof getProgramsSchema>;
+export type GetProgramsDataSuccess = {
+  programs: Tables<"programs">[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: Record<string, string | number>; // Based on getActiveFilters()
+  sort: {
+    by: string;
+    order: "asc" | "desc";
+  };
+};
+export interface GetProgramsDataError {
+  error: {
+    code: number;
+    message: string;
+  };
+}
 
 // -----------------------------
 // GetProgramsRequest Class

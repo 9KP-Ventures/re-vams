@@ -2,11 +2,21 @@
 
 import { signToken, StudentVerificationPayload } from "@/lib/jwt";
 import { cookies } from "next/headers";
-import { getPrograms, ProgramsResponse } from "./programs";
-import { getYearLevels, YearLevelsResponse } from "./year-levels";
+import { getPrograms } from "./programs";
+import { getYearLevels } from "./year-levels";
 import { Tables } from "@/app/utils/supabase/types";
-import { CreateStudentData } from "@/lib/requests/students/create";
+import {
+  CreateStudentData,
+  CreateStudentDataError,
+  CreateStudentDataSuccess,
+} from "@/lib/requests/students/create";
 import { getServerOrigin } from "@/app/utils/server";
+import {
+  GetStudentDataError,
+  GetStudentDataSuccess,
+} from "@/lib/requests/students/get+delete";
+import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
+import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
 
 export type RegistrationFormData = {
   idNumber: string;
@@ -63,14 +73,19 @@ export const verifyStudentIdByLastName = async (
 ): Promise<boolean> => {
   try {
     const origin = await getServerOrigin();
-    const response = await fetch(`${origin}/api/students/${id}`, {
+    const response: Response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch student data: ${response.status}`);
+      const data: GetStudentDataError = await response.json();
+      const { error } = data;
+
+      console.log(error);
+      throw new Error(`Failed to fetch student data: ${error.message}`);
     }
-    const data = await response.json();
+
+    const data: GetStudentDataSuccess = await response.json();
     const { student } = data;
 
     if (
@@ -91,16 +106,20 @@ export const verifyStudentIdByLastName = async (
 export const checkStudentIdIfExists = async (id: string) => {
   try {
     const origin = await getServerOrigin();
-    const response = await fetch(`${origin}/api/students/${id}`, {
+    const response: Response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch student data: ${response.status}`);
+      const data: GetStudentDataError = await response.json();
+      const { error } = data;
+
+      console.log(error);
+      throw new Error(`Failed to fetch student data: ${error.message}`);
     }
-    const data = await response.json();
+
+    const data: GetStudentDataSuccess = await response.json();
     const { student } = data;
-    console.log(student);
 
     if (id === student["id"]) {
       return true;
@@ -109,6 +128,7 @@ export const checkStudentIdIfExists = async (id: string) => {
     }
   } catch (error) {
     console.error("Checking student error:", error);
+    // Not really an error if no student exist, we will redirect the user to registration page
     return false;
   }
 };
@@ -124,7 +144,7 @@ export const registerStudent = async (
     }
 
     const origin = await getServerOrigin();
-    const response = await fetch(`${origin}/api/students`, {
+    const response: Response = await fetch(`${origin}/api/students`, {
       method: "POST",
       body: JSON.stringify({
         id: formData.idNumber,
@@ -140,14 +160,12 @@ export const registerStudent = async (
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      const {
-        error: { message },
-      } = data;
-      throw new Error(`${message}`);
+      const data: CreateStudentDataError = await response.json();
+      const { error } = data;
+      throw new Error(`${error.message}`);
     }
 
-    const data = await response.json();
+    const data: CreateStudentDataSuccess = await response.json();
     const { student } = data;
 
     // After successful registration, verify the student for cookie setting
@@ -171,8 +189,8 @@ export const registerStudent = async (
 
 // Helper function to get all registration data
 export async function getRegistrationData(): Promise<{
-  programs: ProgramsResponse["programs"];
-  yearLevels: YearLevelsResponse["year_levels"];
+  programs: GetProgramsDataSuccess["programs"];
+  yearLevels: GetYearLevelsDataSuccess["year_levels"];
 }> {
   const [programs, yearLevels] = await Promise.all([
     getPrograms(),

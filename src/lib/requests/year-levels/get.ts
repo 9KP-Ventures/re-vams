@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -15,6 +16,12 @@ const getYearLevelsSchema = z.object({
 });
 
 export type GetYearLevelsData = z.infer<typeof getYearLevelsSchema>;
+export type GetYearLevelsDataSuccess = {
+  year_levels: Tables<"year_levels">[];
+};
+export type GetYearLevelsDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // GetProgramsRequest Class

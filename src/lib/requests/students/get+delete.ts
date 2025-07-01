@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -11,6 +12,25 @@ const getStudentSchema = z.object({
 });
 
 export type GetStudentData = z.infer<typeof getStudentSchema>;
+export type GetStudentDataSuccess = {
+  student: Omit<
+    Tables<"students">,
+    "program_id" | "year_level_id" | "major_id"
+  > & {
+    program: Tables<"programs">;
+    year_level: Tables<"year_levels">;
+    major: Tables<"majors">;
+  };
+};
+export type GetStudentDataError = {
+  error: { code: number; message: string };
+};
+export type DeleteStudentDataSuccess = {
+  message: string;
+};
+export type DeleteStudentDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // GetStudentRequest Class
