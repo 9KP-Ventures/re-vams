@@ -81,7 +81,7 @@ export default function StudentRegistrationForm({
       field === "middleName"
     ) {
       // Auto-capitalize as user types
-      processedValue = value.trim().toUpperCase();
+      processedValue = value.toUpperCase();
     }
 
     // Handle email field
@@ -92,7 +92,7 @@ export default function StudentRegistrationForm({
 
     setFormData(prev => ({
       ...prev,
-      [field]: processedValue,
+      [field]: processedValue.trim(),
     }));
 
     // Clear error when user starts typing
