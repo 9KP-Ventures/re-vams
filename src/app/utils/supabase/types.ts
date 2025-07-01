@@ -568,7 +568,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      Attendance_Type: "time_in" | "time_out"
+      Attendance_Type: "TIME_IN" | "TIME_OUT"
       Payable_Type: "fee" | "fine"
       User_Roles: "admin" | "non_admin" | "student" | "super"
     }
@@ -686,7 +686,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      Attendance_Type: ["time_in", "time_out"],
+      Attendance_Type: ["TIME_IN", "TIME_OUT"],
       Payable_Type: ["fee", "fine"],
       User_Roles: ["admin", "non_admin", "student", "super"],
     },
