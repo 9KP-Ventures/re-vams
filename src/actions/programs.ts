@@ -1,5 +1,6 @@
 "use server";
 
+import { getServerOrigin } from "@/app/utils/server";
 import { Tables } from "@/app/utils/supabase/types";
 
 export interface ProgramsResponse {
@@ -16,9 +17,7 @@ export interface ProgramsResponse {
 
 export async function getPrograms(): Promise<ProgramsResponse["programs"]> {
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
     const response = await fetch(
       `${origin}/api/programs?sortBy=name&sortOrder=asc`,
       {

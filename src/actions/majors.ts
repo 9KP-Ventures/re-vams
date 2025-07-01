@@ -1,5 +1,6 @@
 "use server";
 
+import { getServerOrigin } from "@/app/utils/server";
 import { Tables } from "@/app/utils/supabase/types";
 
 export interface ProgramMajorsResponse {
@@ -12,9 +13,7 @@ export async function getMajorsForProgram(
   programId: number
 ): Promise<ProgramMajorsResponse["majors"]> {
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
     const response = await fetch(`${origin}/api/programs/${programId}/majors`, {
       cache: "force-cache",
       next: { revalidate: 3600 },

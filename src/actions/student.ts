@@ -1,3 +1,4 @@
+import { getServerOrigin } from "@/app/utils/server";
 import { Tables } from "@/app/utils/supabase/types";
 import { GenerateCodeData } from "@/lib/requests/code/generate/get";
 
@@ -17,9 +18,7 @@ export async function fetchStudentData(
   id: string
 ): Promise<StudentWithCode | null> {
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
 
     const response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
