@@ -1,5 +1,5 @@
 import { createClient } from "@/app/utils/supabase/server";
-import { GetStudentRequest } from "@/lib/requests/students/get";
+import { GetStudentRequest } from "@/lib/requests/students/get+delete";
 import { UpdateStudentRequest } from "@/lib/requests/students/update";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { FormRequest } from "../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -45,6 +46,12 @@ const createManyStudentsSchema = z.object({
 });
 
 export type CreateManyStudentsData = z.infer<typeof createManyStudentsSchema>;
+export type CreateManyStudentsDataSuccess = {
+  students: Tables<"students">[];
+};
+export type CreateManyStudentsDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // CreateManyStudentsRequest Class

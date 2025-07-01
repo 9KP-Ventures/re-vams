@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { FormRequest } from "../base-request";
+import { GetStudentDataSuccess } from "./get+delete";
 
 // -----------------------------
 // Schema Definitions
@@ -34,6 +35,12 @@ const createStudentSchema = z
   .passthrough();
 
 export type CreateStudentData = z.infer<typeof createStudentSchema>;
+export type CreateStudentDataSuccess = {
+  student: GetStudentDataSuccess["student"];
+};
+export type CreateStudentDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // CreateStudentRequest Class

@@ -1,24 +1,17 @@
 "use server";
 
 import { getServerOrigin } from "@/app/utils/server";
-import { Tables } from "@/app/utils/supabase/types";
+import {
+  GetProgramsDataError,
+  GetProgramsDataSuccess,
+} from "@/lib/requests/programs/get";
 
-export interface ProgramsResponse {
-  programs: Tables<"programs">[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
-
-export async function getPrograms(): Promise<ProgramsResponse["programs"]> {
+export async function getPrograms(): Promise<
+  GetProgramsDataSuccess["programs"]
+> {
   try {
     const origin = await getServerOrigin();
-    const response = await fetch(
+    const response: Response = await fetch(
       `${origin}/api/programs?sortBy=name&sortOrder=asc`,
       {
         cache: "force-cache", // Cache for performance
@@ -28,11 +21,16 @@ export async function getPrograms(): Promise<ProgramsResponse["programs"]> {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch programs: ${response.status}`);
+      const data: GetProgramsDataError = await response.json();
+      const { error } = data;
+
+      console.log(error);
+      throw new Error(`Failed to fetch programs: ${error.message}`);
     }
 
-    const data: ProgramsResponse = await response.json();
-    return data.programs || [];
+    const data: GetProgramsDataSuccess = await response.json();
+    const { programs } = data;
+    return programs;
   } catch (error) {
     console.error("Error fetching programs:", error);
     return [];

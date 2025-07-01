@@ -1,31 +1,40 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
 
-const getStudentSchema = z.object({
-  id: z.string().min(1, "Student ID is required and cannot be empty"),
+const getEventSchema = z.object({
+  id: z.coerce.number().int().min(1, "Event ID must be a positive integer"),
 });
 
-export type GetStudentData = z.infer<typeof getStudentSchema>;
+export type GetEventData = z.infer<typeof getEventSchema>;
+export type GetEventDataSuccess = {
+  event: Omit<Tables<"events">, "organization_id" & "semester_id"> & {
+    organization: Tables<"organizations">;
+  } & {
+    semester: Tables<"semesters">;
+  };
+};
+export type GetEventDataError = { error: { code: number; message: string } };
 
 // -----------------------------
-// GetStudentRequest Class
+// GetEventRequest Class
 // -----------------------------
 
-export class GetStudentRequest extends BaseRequest<GetStudentData> {
-  private studentId: string;
+export class GetEventRequest extends BaseRequest<GetEventData> {
+  private eventId: string;
 
-  constructor(request: NextRequest, studentId: string) {
+  constructor(request: NextRequest, eventId: string) {
     super(request);
-    this.studentId = studentId;
+    this.eventId = eventId;
   }
 
   rules() {
-    return getStudentSchema;
+    return getEventSchema;
   }
 
   async authorize(): Promise<boolean> {
@@ -38,8 +47,8 @@ export class GetStudentRequest extends BaseRequest<GetStudentData> {
         return this.unauthorizedResponse();
       }
 
-      // Validate the student ID parameter
-      this.validatedData = this.rules().parse({ id: this.studentId });
+      // Validate the event ID parameter
+      this.validatedData = this.rules().parse({ id: this.eventId });
       return null;
     } catch (error) {
       if (error instanceof ZodError) {
@@ -52,7 +61,7 @@ export class GetStudentRequest extends BaseRequest<GetStudentData> {
   private handleZodValidationError(error: ZodError): NextResponse {
     const firstError = error.errors[0];
 
-    console.log("Student ID Validation Error:", {
+    console.log("Event ID Validation Error:", {
       message: firstError.message,
       path: firstError.path,
       code: firstError.code,
@@ -70,7 +79,7 @@ export class GetStudentRequest extends BaseRequest<GetStudentData> {
   }
 
   // Utility methods
-  getStudentId(): string {
+  getEventId(): number {
     return this.validated().id;
   }
 }

@@ -1,40 +1,51 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
-import { BaseRequest } from "../../base-request";
+import { BaseRequest } from "../base-request";
 import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
 
-const getProgramMajorsSchema = z.object({
-  id: z.coerce.number().int().min(1, "Program ID must be a positive integer"),
+const getStudentSchema = z.object({
+  id: z.string().min(1, "Student ID is required and cannot be empty"),
 });
 
-export type GetProgramMajorsData = z.infer<typeof getProgramMajorsSchema>;
-export type GetProgramMajorsDataSuccess = {
-  program: Tables<"programs">;
-  majors: Tables<"majors">[];
-  count: number;
+export type GetStudentData = z.infer<typeof getStudentSchema>;
+export type GetStudentDataSuccess = {
+  student: Omit<
+    Tables<"students">,
+    "program_id" | "year_level_id" | "major_id"
+  > & {
+    program: Tables<"programs">;
+    year_level: Tables<"year_levels">;
+    major: Tables<"majors">;
+  };
 };
-export type GetProgramMajorsDataError = {
+export type GetStudentDataError = {
+  error: { code: number; message: string };
+};
+export type DeleteStudentDataSuccess = {
+  message: string;
+};
+export type DeleteStudentDataError = {
   error: { code: number; message: string };
 };
 
 // -----------------------------
-// GetProgramMajorsRequest Class
+// GetStudentRequest Class
 // -----------------------------
 
-export class GetProgramMajorsRequest extends BaseRequest<GetProgramMajorsData> {
-  private programId: string;
+export class GetStudentRequest extends BaseRequest<GetStudentData> {
+  private studentId: string;
 
-  constructor(request: NextRequest, programId: string) {
+  constructor(request: NextRequest, studentId: string) {
     super(request);
-    this.programId = programId;
+    this.studentId = studentId;
   }
 
   rules() {
-    return getProgramMajorsSchema;
+    return getStudentSchema;
   }
 
   async authorize(): Promise<boolean> {
@@ -47,8 +58,8 @@ export class GetProgramMajorsRequest extends BaseRequest<GetProgramMajorsData> {
         return this.unauthorizedResponse();
       }
 
-      // Validate the program ID parameter
-      this.validatedData = this.rules().parse({ id: this.programId });
+      // Validate the student ID parameter
+      this.validatedData = this.rules().parse({ id: this.studentId });
       return null;
     } catch (error) {
       if (error instanceof ZodError) {
@@ -61,7 +72,7 @@ export class GetProgramMajorsRequest extends BaseRequest<GetProgramMajorsData> {
   private handleZodValidationError(error: ZodError): NextResponse {
     const firstError = error.errors[0];
 
-    console.log("Program ID Validation Error:", {
+    console.log("Student ID Validation Error:", {
       message: firstError.message,
       path: firstError.path,
       code: firstError.code,
@@ -79,7 +90,7 @@ export class GetProgramMajorsRequest extends BaseRequest<GetProgramMajorsData> {
   }
 
   // Utility methods
-  getProgramId(): number {
+  getStudentId(): string {
     return this.validated().id;
   }
 }

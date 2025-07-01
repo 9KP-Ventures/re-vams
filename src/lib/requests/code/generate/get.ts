@@ -11,6 +11,8 @@ const generateCodeSchema = z.object({
 });
 
 export type GenerateCodeData = z.infer<typeof generateCodeSchema>;
+export type GenerateCodeSuccess = { code: string };
+export type GenerateCodeError = { error: { code: number; message: string } };
 
 // -----------------------------
 // GenerateCodeRequest Class

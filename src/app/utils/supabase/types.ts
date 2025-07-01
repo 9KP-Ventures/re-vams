@@ -138,6 +138,7 @@ export type Database = {
       }
       events: {
         Row: {
+          active: boolean | null
           created_at: string
           custom_email_message: string
           custom_email_subject: string
@@ -145,8 +146,10 @@ export type Database = {
           id: number
           name: string
           organization_id: number
+          semester_id: number
         }
         Insert: {
+          active?: boolean | null
           created_at?: string
           custom_email_message: string
           custom_email_subject?: string
@@ -154,8 +157,10 @@ export type Database = {
           id?: number
           name?: string
           organization_id: number
+          semester_id: number
         }
         Update: {
+          active?: boolean | null
           created_at?: string
           custom_email_message?: string
           custom_email_subject?: string
@@ -163,6 +168,7 @@ export type Database = {
           id?: number
           name?: string
           organization_id?: number
+          semester_id?: number
         }
         Relationships: [
           {
@@ -170,6 +176,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
             referencedColumns: ["id"]
           },
         ]
@@ -448,6 +461,21 @@ export type Database = {
         }
         Relationships: []
       }
+      semesters: {
+        Row: {
+          id: number
+          name: string | null
+        }
+        Insert: {
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string | null
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           created_at: string
@@ -568,7 +596,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      Attendance_Type: "time_in" | "time_out"
+      Attendance_Type: "TIME_IN" | "TIME_OUT"
       Payable_Type: "fee" | "fine"
       User_Roles: "admin" | "non_admin" | "student" | "super"
     }
@@ -686,7 +714,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      Attendance_Type: ["time_in", "time_out"],
+      Attendance_Type: ["TIME_IN", "TIME_OUT"],
       Payable_Type: ["fee", "fine"],
       User_Roles: ["admin", "non_admin", "student", "super"],
     },

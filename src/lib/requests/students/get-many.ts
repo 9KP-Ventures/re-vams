@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
+import { GetStudentDataSuccess } from "./get+delete";
 
 // -----------------------------
 // Schema Definitions
@@ -18,6 +19,25 @@ const getStudentsSchema = z.object({
 });
 
 export type GetStudentsData = z.infer<typeof getStudentsSchema>;
+export type GetStudentsDataSuccess = {
+  students: GetStudentDataSuccess["student"][];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: Record<string, string | number>;
+  sort: {
+    by: string;
+    order: "asc" | "desc";
+  };
+};
+export type GetStudentsDataError = {
+  error: { code: number; message: string };
+};
 
 // -----------------------------
 // GetStudentsRequest Class

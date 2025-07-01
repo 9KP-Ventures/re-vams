@@ -1,35 +1,64 @@
 import { z, ZodError } from "zod";
-import { NextResponse } from "next/server";
-import { BaseRequest } from "../base-request";
+import { NextResponse, NextRequest } from "next/server";
+import { BaseRequest } from "../../base-request";
 import { Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
 
-const getYearLevelsSchema = z.object({
+const getAttendanceSlotsSchema = z.object({
+  event_id: z.coerce.number().int().min(1),
   page: z.coerce.number().int().min(1),
   limit: z.coerce.number().int().min(1).max(100),
-  search: z.string().optional(),
-  sort_by: z.enum(["id", "name", "created_at"]),
+  type: z.enum(["TIME_IN", "TIME_OUT"]).optional(),
+  date_from: z.string().datetime().optional(),
+  date_to: z.string().datetime().optional(),
+  sort_by: z.enum(["id", "trigger_time", "type", "fine_amount", "created_at"]),
   sort_order: z.enum(["asc", "desc"]),
 });
 
-export type GetYearLevelsData = z.infer<typeof getYearLevelsSchema>;
-export type GetYearLevelsDataSuccess = {
-  year_levels: Tables<"year_levels">[];
+export type GetAttendanceSlotsData = z.infer<typeof getAttendanceSlotsSchema>;
+export type GetAttendanceSlotsDataSuccess = {
+  attendance_slots: Array<
+    Omit<Tables<"attendance_slots">, "created_at" & "updated_at" & "event_id">
+  >;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    type?: string;
+    date_from?: string;
+    date_to?: string;
+  };
+  sort: {
+    by: string;
+    order: string;
+  };
 };
-export type GetYearLevelsDataError = {
+export type GetAttendanceSlotsDataError = {
   error: { code: number; message: string };
 };
 
 // -----------------------------
-// GetProgramsRequest Class
+// GetAttendanceSlotsRequest Class
 // -----------------------------
 
-export class GetYearLevelsRequest extends BaseRequest<GetYearLevelsData> {
+export class GetAttendanceSlotsRequest extends BaseRequest<GetAttendanceSlotsData> {
+  private eventId: string;
+
+  constructor(request: NextRequest, eventId: string) {
+    super(request);
+    this.eventId = eventId;
+  }
+
   rules() {
-    return getYearLevelsSchema;
+    return getAttendanceSlotsSchema;
   }
 
   async authorize(): Promise<boolean> {
@@ -47,9 +76,10 @@ export class GetYearLevelsRequest extends BaseRequest<GetYearLevelsData> {
 
       // Apply defaults manually
       const paramsWithDefaults = {
+        event_id: this.eventId,
         page: 1,
-        limit: 100,
-        sort_by: "name" as const,
+        limit: 10,
+        sort_by: "trigger_time" as const,
         sort_order: "asc" as const,
         ...queryParams,
       };
@@ -87,6 +117,10 @@ export class GetYearLevelsRequest extends BaseRequest<GetYearLevelsData> {
   }
 
   // Utility methods
+  getEventId(): number {
+    return this.validated().event_id;
+  }
+
   getPage(): number {
     return this.validated().page;
   }
@@ -99,8 +133,16 @@ export class GetYearLevelsRequest extends BaseRequest<GetYearLevelsData> {
     return (this.getPage() - 1) * this.getLimit();
   }
 
-  getSearch(): string | undefined {
-    return this.validated().search;
+  getType(): "TIME_IN" | "TIME_OUT" | undefined {
+    return this.validated().type;
+  }
+
+  getDateFrom(): string | undefined {
+    return this.validated().date_from;
+  }
+
+  getDateTo(): string | undefined {
+    return this.validated().date_to;
   }
 
   getSortBy(): string {
@@ -111,11 +153,18 @@ export class GetYearLevelsRequest extends BaseRequest<GetYearLevelsData> {
     return this.validated().sort_order;
   }
 
+  hasFilters(): boolean {
+    const data = this.validated();
+    return !!(data.type || data.date_from || data.date_to);
+  }
+
   getActiveFilters() {
     const data = this.validated();
-    const filters: Record<string, string | number> = {};
+    const filters: Record<string, string> = {};
 
-    if (data.search) filters.search = data.search;
+    if (data.type) filters.type = data.type;
+    if (data.date_from) filters.date_from = data.date_from;
+    if (data.date_to) filters.date_to = data.date_to;
 
     return filters;
   }

@@ -1,18 +1,15 @@
 import { getServerOrigin } from "@/app/utils/server";
-import { Tables } from "@/app/utils/supabase/types";
-import { GenerateCodeData } from "@/lib/requests/code/generate/get";
+import {
+  GenerateCodeData,
+  GenerateCodeError,
+  GenerateCodeSuccess,
+} from "@/lib/requests/code/generate/get";
+import {
+  GetStudentDataError,
+  GetStudentDataSuccess,
+} from "@/lib/requests/students/get+delete";
 
-interface StudentDataResponse {
-  student: Tables<"students">;
-}
-
-interface CodeDataResponse {
-  code: string;
-}
-
-interface StudentWithCode extends Tables<"students"> {
-  code: string;
-}
+type StudentWithCode = GetStudentDataSuccess["student"] & { code: string };
 
 export async function fetchStudentData(
   id: string
@@ -20,19 +17,23 @@ export async function fetchStudentData(
   try {
     const origin = await getServerOrigin();
 
-    const response = await fetch(`${origin}/api/students/${id}`, {
+    const response: Response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
       cache: "no-store", // Don't cache sensitive student data
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch student data: ${response.status}`);
+      const data: GetStudentDataError = await response.json();
+      const { error } = data;
+
+      console.log(error);
+      throw new Error(`Failed to fetch student data: ${error.message}`);
     }
 
-    const data: StudentDataResponse = await response.json();
+    const data: GetStudentDataSuccess = await response.json();
     const { student } = data;
 
-    const codeResponse = await fetch(`${origin}/api/code/generate`, {
+    const codeResponse: Response = await fetch(`${origin}/api/code/generate`, {
       method: "POST",
       body: JSON.stringify({
         student_id: id,
@@ -40,12 +41,14 @@ export async function fetchStudentData(
     });
 
     if (!codeResponse.ok) {
-      throw new Error(
-        `Failed to fetch student code data: ${codeResponse.status}`
-      );
+      const codeData: GenerateCodeError = await codeResponse.json();
+      const { error } = codeData;
+
+      console.log(error);
+      throw new Error(`Failed to fetch student code data: ${error.message}`);
     }
 
-    const codeData: CodeDataResponse = await codeResponse.json();
+    const codeData: GenerateCodeSuccess = await codeResponse.json();
     const { code } = codeData;
 
     return {
