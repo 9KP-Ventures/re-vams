@@ -138,6 +138,7 @@ export type Database = {
       }
       events: {
         Row: {
+          active: boolean | null
           created_at: string
           custom_email_message: string
           custom_email_subject: string
@@ -145,8 +146,10 @@ export type Database = {
           id: number
           name: string
           organization_id: number
+          semester_id: number
         }
         Insert: {
+          active?: boolean | null
           created_at?: string
           custom_email_message: string
           custom_email_subject?: string
@@ -154,8 +157,10 @@ export type Database = {
           id?: number
           name?: string
           organization_id: number
+          semester_id: number
         }
         Update: {
+          active?: boolean | null
           created_at?: string
           custom_email_message?: string
           custom_email_subject?: string
@@ -163,6 +168,7 @@ export type Database = {
           id?: number
           name?: string
           organization_id?: number
+          semester_id?: number
         }
         Relationships: [
           {
@@ -170,6 +176,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
             referencedColumns: ["id"]
           },
         ]
@@ -445,6 +458,21 @@ export type Database = {
           id?: number
           paid_amount?: number
           remarks?: string | null
+        }
+        Relationships: []
+      }
+      semesters: {
+        Row: {
+          id: number
+          name: string | null
+        }
+        Insert: {
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string | null
         }
         Relationships: []
       }
