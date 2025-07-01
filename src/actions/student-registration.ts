@@ -6,6 +6,7 @@ import { getPrograms, ProgramsResponse } from "./programs";
 import { getYearLevels, YearLevelsResponse } from "./year-levels";
 import { Tables } from "@/app/utils/supabase/types";
 import { CreateStudentData } from "@/lib/requests/students/create";
+import { getServerOrigin } from "@/app/utils/server";
 
 export type RegistrationFormData = {
   idNumber: string;
@@ -61,9 +62,7 @@ export const verifyStudentIdByLastName = async (
   lastName: string
 ): Promise<boolean> => {
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
     const response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
     });
@@ -88,9 +87,7 @@ export const verifyStudentIdByLastName = async (
 
 export const checkStudentIdIfExists = async (id: string) => {
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
     const response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
     });
@@ -123,9 +120,7 @@ export const registerStudent = async (
       return { success: false, error: validationError };
     }
 
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const origin = await getServerOrigin();
     const response = await fetch(`${origin}/api/students`, {
       method: "POST",
       body: JSON.stringify({
