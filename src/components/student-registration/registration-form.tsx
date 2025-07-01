@@ -30,12 +30,20 @@ import { getMajorsForProgram } from "@/actions/majors";
 type RegistrationStatus = "idle" | "submitting" | "success" | "error";
 interface StudentRegistrationFormProps {
   id: string;
+  firstName?: string | undefined;
+  middleName?: string | undefined;
+  lastName?: string | undefined;
+  email?: string | undefined;
   programs: Tables<"programs">[];
   yearLevels: Tables<"year_levels">[];
 }
 
 export default function StudentRegistrationForm({
   id,
+  firstName,
+  middleName,
+  lastName,
+  email,
   programs,
   yearLevels,
 }: StudentRegistrationFormProps) {
@@ -44,10 +52,10 @@ export default function StudentRegistrationForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<RegistrationFormData>({
     idNumber: id,
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    email: "",
+    firstName: firstName || "",
+    middleName: middleName || "",
+    lastName: lastName || "",
+    email: email || "",
     program: null,
     yearLevel: null,
     major: null,
@@ -64,9 +72,27 @@ export default function StudentRegistrationForm({
     >,
     value: string
   ) => {
+    let processedValue = value;
+
+    // Handle name fields
+    if (
+      field === "firstName" ||
+      field === "lastName" ||
+      field === "middleName"
+    ) {
+      // Auto-capitalize as user types
+      processedValue = value.trim().toUpperCase();
+    }
+
+    // Handle email field
+    if (field === "email") {
+      // Keep email lowercase
+      processedValue = value.toLowerCase();
+    }
+
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: processedValue,
     }));
 
     // Clear error when user starts typing
@@ -194,9 +220,9 @@ export default function StudentRegistrationForm({
         setStatus("error");
         setErrorMessage(result.error || "Registration failed.");
       }
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setErrorMessage("Registration failed. Please try again.");
+      setErrorMessage(`${error}`);
     }
   };
 
