@@ -25,6 +25,11 @@ export default async function RegistrationPage({
   const studentId = (await searchParams)["student-id"];
   const pattern = /^\d{2}-[1-9]-\d{5}$/;
 
+  const firstName = (await searchParams)["first-name"];
+  const middleName = (await searchParams)["middle-name"];
+  const lastName = (await searchParams)["last-name"];
+  const email = (await searchParams)["email"];
+
   if (
     (name !== "data-privacy" && !accepted) ||
     ((name === "verify" || name === "form") &&
@@ -40,7 +45,13 @@ export default async function RegistrationPage({
       {name === "check" && <RegistrationCheck />}
       {name === "form" && (
         <Suspense fallback={<FormLoadingSkeleton />}>
-          <RegistrationFormWithData studentId={studentId!} />
+          <RegistrationFormWithData
+            studentId={studentId!}
+            firstName={firstName}
+            middleName={middleName}
+            lastName={lastName}
+            email={email}
+          />
         </Suspense>
       )}
       {name === "verify" && <VerifyStudentIdentity id={studentId!} />}

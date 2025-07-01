@@ -73,7 +73,10 @@ export const verifyStudentIdByLastName = async (
     const data = await response.json();
     const { student } = data;
 
-    if (id === student["id"] && lastName === student["last_name"]) {
+    if (
+      id === student["id"] &&
+      lastName.toUpperCase() === `${student["last_name"]}`.toUpperCase()
+    ) {
       await setVerificationCookie(id, lastName);
       return true;
     }
@@ -137,7 +140,11 @@ export const registerStudent = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to register student: ${response.status}`);
+      const data = await response.json();
+      const {
+        error: { message },
+      } = data;
+      throw new Error(`${message}`);
     }
 
     const data = await response.json();
@@ -157,7 +164,7 @@ export const registerStudent = async (
     console.error("Registration error:", error);
     return {
       success: false,
-      error: "Registration failed. Please try again.",
+      error: `${error}`,
     };
   }
 };

@@ -20,7 +20,7 @@ export function obfuscateName(name: string): string {
     return words
       .map(word => {
         if (word.length <= 3) {
-          return word; // Keep short words as-is
+          return word.charAt(0);
         }
 
         const firstTwo = word.slice(0, 2);
@@ -33,7 +33,7 @@ export function obfuscateName(name: string): string {
   } else {
     // Single word
     if (trimmedName.length <= 3) {
-      return trimmedName;
+      return trimmedName.charAt(0);
     }
 
     const firstTwo = trimmedName.slice(0, 2);
@@ -42,4 +42,17 @@ export function obfuscateName(name: string): string {
 
     return `${firstTwo}${"•".repeat(middleLength)}${lastOne}`;
   }
+}
+
+export function capitalizeName(name: string): string {
+  if (!name) return name;
+
+  return name
+    .trim()
+    .split(/\s+/) // Split by any whitespace
+    .map(word => {
+      if (word.length === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }

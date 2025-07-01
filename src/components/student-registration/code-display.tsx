@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode, Download, User } from "lucide-react";
@@ -19,16 +20,65 @@ interface Props {
 }
 
 export default function StudentCodeDisplay({ studentData }: Props) {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const requestDownloadPermission = async (): Promise<boolean> => {
+    // Check if browser supports the Permissions API
+    if ("permissions" in navigator) {
+      try {
+        // Note: 'downloads' permission might not be supported in all browsers
+        const permission = await navigator.permissions.query({
+          name: "downloads" as PermissionName,
+        });
+        return permission.state === "granted" || permission.state === "prompt";
+      } catch {
+        // If downloads permission is not supported, fall back to general approach
+        console.log(
+          "Downloads permission not supported, proceeding with download"
+        );
+        return true;
+      }
+    }
+
+    // For browsers without Permissions API, proceed with download
+    return true;
+  };
+
+  const loadLogo = (path: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Failed to load logo: ${path}`));
+      img.src = path;
+    });
+  };
+
   const handleSaveQR = async () => {
     try {
-      // QR code size
+      setIsSaving(true);
+
+      const hasPermission = await requestDownloadPermission();
+      if (!hasPermission) {
+        console.log("Download permission denied");
+        return;
+      }
+
+      // Load both logos
+      const [logo1, logo2] = await Promise.all([
+        loadLogo("/vsu-logo.png"),
+        loadLogo("/re-vams-logo.png"), // Add your second logo path
+      ]);
+
+      // QR code size and layout
       const qrSize = 250;
       const padding = 20;
+      const logoHeight = 60;
+      const logoSpacing = 8; // Reduced from 15
       const textAreaHeight = 80;
 
-      // Set canvas size based on QR code + padding + text area
       const canvasWidth = qrSize + padding * 2;
-      const canvasHeight = qrSize + padding * 2 + textAreaHeight;
+      const canvasHeight =
+        logoHeight + logoSpacing + qrSize + padding * 2 + textAreaHeight;
 
       // Create canvas
       const canvas = document.createElement("canvas");
@@ -42,41 +92,75 @@ export default function StudentCodeDisplay({ studentData }: Props) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Generate QR code on a temporary canvas
+      // Draw both logos side by side
+      const logo1Width = (logo1.width / logo1.height) * logoHeight;
+      const logo2Width = (logo2.width / logo2.height) * logoHeight;
+      const totalLogosWidth = logo1Width + logo2Width + 20; // 20px spacing between logos
+      const startX = (canvas.width - totalLogosWidth) / 2;
+
+      // Draw first logo
+      ctx.drawImage(logo1, startX, padding, logo1Width, logoHeight);
+      // Draw second logo
+      ctx.drawImage(
+        logo2,
+        startX + logo1Width + 20,
+        padding,
+        logo2Width,
+        logoHeight
+      );
+
+      // Generate QR code
       const qrCanvas = document.createElement("canvas");
-      await QRCode.toCanvas(qrCanvas, `student:${studentData.id}`, {
+      await QRCode.toCanvas(qrCanvas, studentData.code, {
         width: qrSize,
         margin: 2,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
+        color: { dark: "#000000", light: "#FFFFFF" },
       });
 
-      // Draw QR code onto main canvas (centered with padding)
-      ctx.drawImage(qrCanvas, padding, padding, qrSize, qrSize);
+      const qrY = padding + logoHeight + logoSpacing;
+      ctx.drawImage(qrCanvas, padding, qrY, qrSize, qrSize);
 
-      // Add student info text
+      // Add student info with wide tracking and bold last name
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 18px Arial";
       ctx.textAlign = "center";
 
-      const textStartY = qrSize + padding + 25;
-      ctx.fillText(`${studentData.id}`, canvas.width / 2, textStartY);
-      ctx.font = "16px Arial";
+      const textStartY = qrY + qrSize + 25;
+      ctx.font = "bold 18px Arial";
       ctx.fillText(
-        `${obfuscateName(studentData.firstName)} ${studentData.lastName.charAt(
-          0
-        )}.`,
+        `${obfuscateName(studentData.id)}`,
         canvas.width / 2,
-        textStartY + 25
+        textStartY
       );
+
+      // First name with wide letter spacing
+      ctx.font = "16px Arial";
+      const firstName = obfuscateName(studentData.firstName);
+      const lastInitial = `${studentData.lastName.charAt(0)}.`;
+
+      // Draw first name with tracking
+      const charSpacing = 2; // Extra spacing between characters
+      let currentX =
+        canvas.width / 2 -
+        ctx.measureText(`${firstName} ${lastInitial}`).width / 2;
+
+      for (let i = 0; i < firstName.length; i++) {
+        ctx.fillText(firstName[i], currentX, textStartY + 25);
+        currentX += ctx.measureText(firstName[i]).width + charSpacing;
+      }
+
+      // Add space
+      currentX += ctx.measureText(" ").width;
+
+      // Draw last initial in bold
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(lastInitial, currentX, textStartY + 25);
+
+      ctx.font = "16px Arial";
       ctx.fillText("VSU Baybay Campus", canvas.width / 2, textStartY + 50);
 
-      // Convert to blob and download
+      // Download
       canvas.toBlob(blob => {
         if (!blob) return;
-
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -88,6 +172,8 @@ export default function StudentCodeDisplay({ studentData }: Props) {
       }, "image/png");
     } catch (error) {
       console.error("Error generating QR code:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -124,8 +210,7 @@ export default function StudentCodeDisplay({ studentData }: Props) {
           {/* QR Code Display */}
           <div className="flex justify-center">
             <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm">
-              {/* Mock QR Code - In real implementation, use a QR code library */}
-              <QRCodeDisplay value={`student:${studentData.id}`} />
+              <QRCodeDisplay value={studentData.code} />
             </div>
           </div>
 
@@ -150,10 +235,11 @@ export default function StudentCodeDisplay({ studentData }: Props) {
           {/* Save Button */}
           <Button
             onClick={handleSaveQR}
-            className="w-full transition-all bg-gradient-to-r from-primary/70 to-primary hover:opacity-70"
+            disabled={isSaving}
+            className="w-full transition-all bg-gradient-to-r from-primary/70 to-primary hover:opacity-70 disabled:opacity-50"
           >
             <Download className="w-4 h-4 mr-2" />
-            Save QR Code
+            {isSaving ? "Saving QR..." : "Save QR Code"}
           </Button>
 
           {/* Help Text */}
