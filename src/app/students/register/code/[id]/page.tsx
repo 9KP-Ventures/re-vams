@@ -1,35 +1,29 @@
 "use server";
-import StudentCodeDisplay from "@/components/student-registration/code-display";
-import { verifyToken } from "@/lib/jwt";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+
+import QRCodeErrorPage from "@/components/student-registration/code-display-error";
+import { CodeLoadingSkeleton } from "@/components/student-registration/code-display-loading-skeleton";
+import CodePageWithData from "@/components/student-registration/code-display-wrapper";
+import { Suspense } from "react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }
 
-export default async function StudentCodePage({ params }: PageProps) {
+export default async function StudentCodePage({
+  params,
+  searchParams,
+}: PageProps) {
   const { id } = await params;
-  const cookieStore = await cookies();
+  const { error } = await searchParams;
 
-  // Check for verification token on server
-  const token = cookieStore.get(`student_verified_${id}`)?.value;
-
-  if (!token) {
-    redirect("/students/register");
+  if (error && error === "true") {
+    return <QRCodeErrorPage />;
   }
 
-  const decoded = verifyToken(token);
-  if (!decoded || decoded.student_id !== id) {
-    redirect("/students/register");
-  }
-
-  // Mock student data (in real app, fetch from database)
-  const studentData = {
-    id,
-    firstName: "Juan Carlos",
-    lastName: "Dela Cruz",
-  };
-
-  return <StudentCodeDisplay studentData={studentData} />;
+  return (
+    <Suspense fallback={<CodeLoadingSkeleton />}>
+      <CodePageWithData studentId={id} />
+    </Suspense>
+  );
 }

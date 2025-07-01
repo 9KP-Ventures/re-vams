@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { QrCode, Download, User } from "lucide-react";
 import { QRCodeDisplay } from "../qr-code-display";
 import QRCode from "qrcode";
+import { obfuscateName } from "@/lib/utils";
 
-interface StudentData {
+export interface StudentData {
   id: string;
   firstName: string;
   lastName: string;
+  code: string;
 }
 
 interface Props {
@@ -63,7 +65,9 @@ export default function StudentCodeDisplay({ studentData }: Props) {
       ctx.fillText(`${studentData.id}`, canvas.width / 2, textStartY);
       ctx.font = "16px Arial";
       ctx.fillText(
-        `${studentData.firstName} ${studentData.lastName}`,
+        `${obfuscateName(studentData.firstName)} ${studentData.lastName.charAt(
+          0
+        )}.`,
         canvas.width / 2,
         textStartY + 25
       );

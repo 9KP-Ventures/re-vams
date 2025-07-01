@@ -21,60 +21,23 @@ import {
   User,
 } from "lucide-react";
 import {
-  RegisterStudent,
+  registerStudent,
   RegistrationFormData,
 } from "@/actions/student-registration";
+import { Tables } from "@/app/utils/supabase/types";
+import { getMajorsForProgram } from "@/actions/majors";
 
 type RegistrationStatus = "idle" | "submitting" | "success" | "error";
-
 interface StudentRegistrationFormProps {
   id: string;
+  programs: Tables<"programs">[];
+  yearLevels: Tables<"year_levels">[];
 }
-
-// Mock data - in real app, fetch from API
-const degreePrograms = [
-  { id: "bscs", name: "Bachelor of Science in Computer Science" },
-  { id: "bsit", name: "Bachelor of Science in Information Technology" },
-  { id: "bsba", name: "Bachelor of Science in Business Administration" },
-  { id: "bsed", name: "Bachelor of Science in Education" },
-];
-
-const yearLevels = [
-  { id: "1", name: "1st Year" },
-  { id: "2", name: "2nd Year" },
-  { id: "3", name: "3rd Year" },
-  { id: "4", name: "4th Year" },
-];
-
-// Mock majors based on selected program
-const getMajorsForProgram = (programId: string) => {
-  const majors = {
-    bscs: [
-      { id: "ai", name: "Artificial Intelligence" },
-      { id: "cybersec", name: "Cybersecurity" },
-      { id: "software", name: "Software Engineering" },
-    ],
-    bsit: [
-      { id: "webdev", name: "Web Development" },
-      { id: "network", name: "Network Administration" },
-      { id: "database", name: "Database Management" },
-    ],
-    bsba: [
-      { id: "finance", name: "Finance" },
-      { id: "marketing", name: "Marketing" },
-      { id: "management", name: "Management" },
-    ],
-    bsed: [
-      { id: "elementary", name: "Elementary Education" },
-      { id: "secondary", name: "Secondary Education" },
-      { id: "special", name: "Special Education" },
-    ],
-  };
-  return majors[programId as keyof typeof majors] || [];
-};
 
 export default function StudentRegistrationForm({
   id,
+  programs,
+  yearLevels,
 }: StudentRegistrationFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<RegistrationStatus>("idle");
@@ -84,20 +47,26 @@ export default function StudentRegistrationForm({
     firstName: "",
     middleName: "",
     lastName: "",
-    degreeProgram: "",
-    yearLevel: "",
-    major: "",
+    email: "",
+    program: null,
+    yearLevel: null,
+    major: null,
   });
 
-  const handleInputChange = (
-    field: keyof RegistrationFormData,
+  const [majors, setMajors] = useState<Tables<"majors">[]>([]);
+  const [loadingMajors, setLoadingMajors] = useState(false);
+
+  // Handle input changes for text fields
+  const handleTextInputChange = (
+    field: keyof Pick<
+      RegistrationFormData,
+      "firstName" | "middleName" | "lastName" | "email"
+    >,
     value: string
   ) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
-      // Reset major when program changes
-      ...(field === "degreeProgram" && { major: "" }),
     }));
 
     // Clear error when user starts typing
@@ -107,11 +76,96 @@ export default function StudentRegistrationForm({
     }
   };
 
+  // Handle program selection
+  const handleProgramChange = async (programId: string) => {
+    const selectedProgram = programs.find(p => p.id.toString() === programId);
+
+    if (selectedProgram) {
+      setFormData(prev => ({
+        ...prev,
+        program: {
+          id: selectedProgram.id,
+          name: selectedProgram.name,
+        },
+        major: null, // Reset major when program changes
+      }));
+
+      // Fetch majors for the selected program
+      setLoadingMajors(true);
+      try {
+        const programMajors = await getMajorsForProgram(selectedProgram.id);
+        setMajors(programMajors);
+      } catch (error) {
+        console.error("Error fetching majors:", error);
+        setMajors([]);
+      } finally {
+        setLoadingMajors(false);
+      }
+    }
+
+    // Clear error
+    if (errorMessage) {
+      setErrorMessage(null);
+      setStatus("idle");
+    }
+  };
+
+  // Handle year level selection
+  const handleYearLevelChange = (yearLevelId: string) => {
+    const selectedYearLevel = yearLevels.find(
+      y => y.id.toString() === yearLevelId
+    );
+
+    if (selectedYearLevel) {
+      setFormData(prev => ({
+        ...prev,
+        yearLevel: {
+          id: selectedYearLevel.id,
+          name: selectedYearLevel.name,
+        },
+      }));
+    }
+
+    // Clear error
+    if (errorMessage) {
+      setErrorMessage(null);
+      setStatus("idle");
+    }
+  };
+
+  // Handle major selection
+  const handleMajorChange = (majorId: string) => {
+    const selectedMajor = majors.find(m => m.id.toString() === majorId);
+
+    if (selectedMajor) {
+      setFormData(prev => ({
+        ...prev,
+        major: {
+          id: selectedMajor.id,
+          name: selectedMajor.name,
+          program_id: formData.program?.id ?? null,
+        },
+      }));
+    }
+
+    // Clear error
+    if (errorMessage) {
+      setErrorMessage(null);
+      setStatus("idle");
+    }
+  };
+
   const validateForm = (): string | null => {
     if (!formData.firstName.trim()) return "First name is required";
     if (!formData.lastName.trim()) return "Last name is required";
-    if (!formData.degreeProgram) return "Please select a degree program";
+    if (!formData.program) return "Please select a degree program";
     if (!formData.yearLevel) return "Please select a year level";
+    if (!formData.email.trim()) return "Email is required";
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(formData.email.trim()))
+      return "Please enter a valid email address";
+
     return null;
   };
 
@@ -122,21 +176,23 @@ export default function StudentRegistrationForm({
       setStatus("error");
       return;
     }
+
     setStatus("submitting");
     setErrorMessage(null);
 
     try {
-      const result = await RegisterStudent(formData);
+      const result = await registerStudent(formData);
 
-      if (result.success) {
+      if (result.success && !result.error && result.verified) {
         setStatus("success");
-        // Cookie is automatically set if verified
+
+        // Cookie is automatically set if successfully registered
         setTimeout(() => {
           router.push(`/students/register/code/${formData.idNumber}`);
         }, 1500);
       } else {
         setStatus("error");
-        setErrorMessage(result.error || "Registration failed");
+        setErrorMessage(result.error || "Registration failed.");
       }
     } catch {
       setStatus("error");
@@ -233,6 +289,23 @@ export default function StudentRegistrationForm({
               />
             </div>
 
+            {/* Email Field */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={`${formData.idNumber}@vsu.edu.ph`}
+                  value={formData.email}
+                  onChange={e => handleTextInputChange("email", e.target.value)}
+                  disabled={isFormDisabled}
+                />
+              </div>
+            </div>
+
             {/* Name Fields */}
             <div className="space-y-4">
               <div className="space-y-2">
@@ -244,7 +317,9 @@ export default function StudentRegistrationForm({
                   type="text"
                   placeholder="First Name"
                   value={formData.firstName}
-                  onChange={e => handleInputChange("firstName", e.target.value)}
+                  onChange={e =>
+                    handleTextInputChange("firstName", e.target.value)
+                  }
                   disabled={isFormDisabled}
                 />
               </div>
@@ -253,7 +328,9 @@ export default function StudentRegistrationForm({
                 type="text"
                 placeholder="Middle Name (Optional)"
                 value={formData.middleName}
-                onChange={e => handleInputChange("middleName", e.target.value)}
+                onChange={e =>
+                  handleTextInputChange("middleName", e.target.value)
+                }
                 disabled={isFormDisabled}
                 className="text-muted-foreground"
               />
@@ -262,7 +339,9 @@ export default function StudentRegistrationForm({
                 type="text"
                 placeholder="Last Name"
                 value={formData.lastName}
-                onChange={e => handleInputChange("lastName", e.target.value)}
+                onChange={e =>
+                  handleTextInputChange("lastName", e.target.value)
+                }
                 disabled={isFormDisabled}
               />
             </div>
@@ -271,18 +350,16 @@ export default function StudentRegistrationForm({
             <div className="space-y-2">
               <Label className="text-sm font-medium">Degree Program</Label>
               <Select
-                value={formData.degreeProgram}
-                onValueChange={value =>
-                  handleInputChange("degreeProgram", value)
-                }
+                value={formData.program?.id.toString() || ""}
+                onValueChange={handleProgramChange}
                 disabled={isFormDisabled}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose option..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {degreePrograms.map(program => (
-                    <SelectItem key={program.id} value={program.id}>
+                  {programs.map(program => (
+                    <SelectItem key={program.id} value={program.id.toString()}>
                       {program.name}
                     </SelectItem>
                   ))}
@@ -294,8 +371,8 @@ export default function StudentRegistrationForm({
             <div className="space-y-2">
               <Label className="text-sm font-medium">Year Level</Label>
               <Select
-                value={formData.yearLevel}
-                onValueChange={value => handleInputChange("yearLevel", value)}
+                value={formData.yearLevel?.id.toString() || ""}
+                onValueChange={handleYearLevelChange}
                 disabled={isFormDisabled}
               >
                 <SelectTrigger className="w-full">
@@ -303,7 +380,7 @@ export default function StudentRegistrationForm({
                 </SelectTrigger>
                 <SelectContent>
                   {yearLevels.map(year => (
-                    <SelectItem key={year.id} value={year.id}>
+                    <SelectItem key={year.id} value={year.id.toString()}>
                       {year.name}
                     </SelectItem>
                   ))}
@@ -312,20 +389,31 @@ export default function StudentRegistrationForm({
             </div>
 
             {/* Major (Conditional) */}
-            {formData.degreeProgram && (
+            {formData.program && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Major (Optional)</Label>
+                <Label className="text-sm font-medium">Major</Label>
                 <Select
-                  value={formData.major}
-                  onValueChange={value => handleInputChange("major", value)}
-                  disabled={isFormDisabled}
+                  value={formData.major?.id.toString() || ""}
+                  onValueChange={handleMajorChange}
+                  disabled={isFormDisabled || loadingMajors}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose option..." />
+                  <SelectTrigger
+                    className="w-full"
+                    disabled={majors.length === 0}
+                  >
+                    <SelectValue
+                      placeholder={
+                        loadingMajors
+                          ? "Loading majors..."
+                          : majors.length === 0
+                          ? "No majors found"
+                          : "Choose option..."
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {getMajorsForProgram(formData.degreeProgram).map(major => (
-                      <SelectItem key={major.id} value={major.id}>
+                    {majors.map(major => (
+                      <SelectItem key={major.id} value={major.id.toString()}>
                         {major.name}
                       </SelectItem>
                     ))}

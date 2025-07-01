@@ -1,10 +1,13 @@
 "use server";
+
 import Copyright from "@/components/copyright";
 import RegistrationCheck from "@/components/student-registration/check-registration";
 import PrivacyNotice from "@/components/student-registration/data-privacy";
-import StudentRegistrationForm from "@/components/student-registration/registration-form";
+import { FormLoadingSkeleton } from "@/components/student-registration/form-loading-skeleton";
+import { RegistrationFormWithData } from "@/components/student-registration/registration-form-wrapper";
 import VerifyStudentIdentity from "@/components/student-registration/verify-registration";
 import { redirect, RedirectType } from "next/navigation";
+import { Suspense } from "react";
 
 export default async function RegistrationPage({
   params,
@@ -35,7 +38,11 @@ export default async function RegistrationPage({
     <>
       {name === "data-privacy" && <PrivacyNotice />}
       {name === "check" && <RegistrationCheck />}
-      {name === "form" && <StudentRegistrationForm id={studentId!} />}
+      {name === "form" && (
+        <Suspense fallback={<FormLoadingSkeleton />}>
+          <RegistrationFormWithData studentId={studentId!} />
+        </Suspense>
+      )}
       {name === "verify" && <VerifyStudentIdentity id={studentId!} />}
       <Copyright />
     </>

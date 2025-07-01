@@ -33,7 +33,6 @@ export default function VerifyStudentIdentity({
     setStatus("verifying");
     setErrorMessage(null);
 
-    // Mock verification - simulate successful verification for certain names
     const verified = await verifyStudentIdByLastName(id, lastName);
     if (verified) {
       setStatus("success");

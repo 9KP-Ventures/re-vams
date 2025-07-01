@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { checkStudentIdIfExists } from "@/actions/student-registration";
 
 type CheckStatus =
   | "idle"
@@ -60,19 +61,9 @@ export default function RegistrationCheck() {
     setStatus("checking");
     setValidationError(null);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const exists = await checkStudentIdIfExists(idNumber);
 
-    // Mock database check - simulate existing records
-    const existingIds = [
-      "25-1-12345",
-      "24-2-67890",
-      "23-3-11111",
-      "21-1-01040",
-      "25-1-12345",
-    ];
-
-    if (existingIds.includes(idNumber)) {
+    if (exists) {
       setStatus("found");
       // Redirect to verify page after a short delay
       setTimeout(() => {
