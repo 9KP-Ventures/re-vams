@@ -10,8 +10,8 @@ export function FormLoadingSkeleton() {
           <div className="h-4 bg-muted rounded animate-pulse" />
         </div>
       </div>
-      <div className="bg-card rounded-lg border space-y-4 p-6">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="bg-card rounded-lg border space-y-4 p-6 pb-[168.5px]">
+        {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <div className="h-4 bg-muted rounded animate-pulse w-24" />
             <div className="h-10 bg-muted rounded animate-pulse" />

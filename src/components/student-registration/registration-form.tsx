@@ -92,7 +92,7 @@ export default function StudentRegistrationForm({
 
     setFormData(prev => ({
       ...prev,
-      [field]: processedValue.trim(),
+      [field]: processedValue,
     }));
 
     // Clear error when user starts typing
@@ -328,6 +328,7 @@ export default function StudentRegistrationForm({
                   value={formData.email}
                   onChange={e => handleTextInputChange("email", e.target.value)}
                   disabled={isFormDisabled}
+                  className="placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
