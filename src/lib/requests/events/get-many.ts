@@ -11,7 +11,7 @@ const getEventsSchema = z.object({
   page: z.coerce.number().int().min(1),
   limit: z.coerce.number().int().min(1).max(100),
   search: z.string().optional(),
-  active: z.coerce.boolean().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
   semester_id: z.coerce.number().int().min(1).optional(),
   organization_id: z.coerce.number().int().min(1).optional(),
   date_from: z.string().date().optional(),
@@ -42,6 +42,8 @@ export type GetEventsDataSuccess = {
     organization_id?: number;
     date_from?: string;
     date_to?: string;
+    status?: boolean;
+    semester_id?:number;
   };
   sort: {
     by: string;
@@ -138,8 +140,8 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
     return this.validated().semester_id;
   }
 
-  getActive(): boolean | undefined {
-    return this.validated().active;
+  getStatus(): string | undefined {
+    return this.validated().status;
   }
 
   getDateFrom(): string | undefined {
@@ -165,7 +167,7 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
       data.organization_id ||
       data.date_from ||
       data.date_to ||
-      data.active ||
+      data.status ||
       data.semester_id
     );
   }
@@ -178,7 +180,7 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
     if (data.organization_id) filters.organization_id = data.organization_id;
     if (data.date_from) filters.date_from = data.date_from;
     if (data.date_to) filters.date_to = data.date_to;
-    if (data.active) filters.active = data.active;
+    if (data.status) filters.status = data.status;
     if (data.semester_id) filters.semester_id = data.semester_id;
 
     return filters;

@@ -138,7 +138,6 @@ export type Database = {
       }
       events: {
         Row: {
-          active: boolean | null
           created_at: string
           custom_email_message: string
           custom_email_subject: string
@@ -147,9 +146,9 @@ export type Database = {
           name: string
           organization_id: number
           semester_id: number
+          status: Database["public"]["Enums"]["Status"]
         }
         Insert: {
-          active?: boolean | null
           created_at?: string
           custom_email_message: string
           custom_email_subject?: string
@@ -158,9 +157,9 @@ export type Database = {
           name?: string
           organization_id: number
           semester_id: number
+          status?: Database["public"]["Enums"]["Status"]
         }
         Update: {
-          active?: boolean | null
           created_at?: string
           custom_email_message?: string
           custom_email_subject?: string
@@ -169,6 +168,7 @@ export type Database = {
           name?: string
           organization_id?: number
           semester_id?: number
+          status?: Database["public"]["Enums"]["Status"]
         }
         Relationships: [
           {
@@ -598,6 +598,7 @@ export type Database = {
     Enums: {
       Attendance_Type: "TIME_IN" | "TIME_OUT"
       Payable_Type: "fee" | "fine"
+      Status: "active" | "inactive"
       User_Roles: "admin" | "non_admin" | "student" | "super"
     }
     CompositeTypes: {
@@ -716,6 +717,7 @@ export const Constants = {
     Enums: {
       Attendance_Type: ["TIME_IN", "TIME_OUT"],
       Payable_Type: ["fee", "fine"],
+      Status: ["active", "inactive"],
       User_Roles: ["admin", "non_admin", "student", "super"],
     },
   },
