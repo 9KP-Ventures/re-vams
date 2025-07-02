@@ -9,6 +9,7 @@ import {
   PhilippinePeso,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function EventCard({
   event,
@@ -22,9 +23,17 @@ export default function EventCard({
           <div className="flex justify-between items-start mb-4">
             <h3 className="font-semibold text-primary">{event.name}</h3>
             <div className="flex items-center gap-8">
-              <span className="px-10 py-1 text-xs font-medium rounded-full bg-accent text-accent-foreground">
-                {/* TODO: Get active state by event.date and current date and event.time_slot[0].time and current time */}
-                Active
+              <span
+                className={cn(
+                  "capitalize px-10 py-1 text-xs font-medium rounded-full bg-accent text-accent-foreground",
+                  event.status === "active"
+                    ? "text-accent-foreground bg-accent"
+                    : event.status === "inactive"
+                    ? "text-muted-foreground bg-muted"
+                    : ""
+                )}
+              >
+                {event.status}
               </span>
               <button className="cursor-pointer text-foreground/60 hover:text-foreground/80">
                 <MoreHorizontal size={24} />

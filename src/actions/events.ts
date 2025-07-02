@@ -31,7 +31,8 @@ export async function getEvents(
       },
       sort: { apiKey: "sort_by", default: "date" },
       order: { apiKey: "sort_order", default: "desc" },
-      status: { apiKey: "status", default: "active" },
+      status: { apiKey: "status" },
+      semester_id: { apiKey: "semester_id" },
     };
 
     // Build query params using a functional approach

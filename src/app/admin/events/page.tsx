@@ -17,6 +17,7 @@ const eventSearchParamsSchema = z.object({
   order: z.enum(["asc", "desc"]).optional(),
   error: z.string().optional(),
   status: z.string().optional(),
+  semester_id: z.string().optional(),
 });
 
 // Type for validated search params
