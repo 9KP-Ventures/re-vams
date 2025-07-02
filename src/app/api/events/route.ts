@@ -60,9 +60,9 @@ export async function GET(request: NextRequest) {
       query = query.eq("semester_id", semesterId);
     }
 
-    const active = customRequest.getActive();
-    if (active) {
-      query = query.eq("active", active);
+    const status = customRequest.getStatus();
+    if (status === "active" || status === "inactive") {
+      query = query.eq("status", status);
     }
 
     const dateFrom = customRequest.getDateFrom();
