@@ -11,23 +11,16 @@ export default async function EventsGridWrapper({
 }: {
   params: ValidatedSearchParams;
 }) {
-  const eventsData = await getEvents({
-    page: params.page ?? 1,
-    limit: params.limit ?? 6,
-    search: params.search,
-    status: params.status,
-    sort: params.sort || "date",
-    order: params.order || "desc",
-  });
+  const eventsData = await getEvents(params);
 
   if (!eventsData || eventsData.events.length === 0) {
-    return <NoEvents isSearching={!!params.search} />;
+    return <NoEvents fromParams={!!params} />;
   }
 
   return (
     <div className="flex-grow flex flex-col justify-between gap-8">
       <EventsGrid events={eventsData.events} />
-      <EventsPagination pagination={eventsData.pagination} params={params}/>
+      <EventsPagination pagination={eventsData.pagination} params={params} />
     </div>
   );
 }

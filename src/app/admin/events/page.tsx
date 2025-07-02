@@ -11,18 +11,13 @@ import EventsGridWrapper from "@/components/revams-admin/events/events-grid-wrap
 
 // Define a schema for your search params
 const eventSearchParamsSchema = z.object({
-  page: z.string().regex(/^\d+$/).transform(Number).optional().catch(undefined),
-  limit: z
-    .string()
-    .regex(/^\d+$/)
-    .transform(Number)
-    .optional()
-    .catch(undefined),
+  page: z.string().regex(/^\d+$/).transform(Number).optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   search: z.string().optional(),
-  status: z.string().optional(),
   sort: z.string().optional(),
-  order: z.enum(["asc", "desc"]).optional().catch(undefined),
+  order: z.enum(["asc", "desc"]).optional(),
   error: z.string().optional(),
+  status: z.string().optional(),
 });
 
 // Type for validated search params
@@ -36,10 +31,9 @@ export default async function EventsViewPage({
   // Parse and validate search params
   const result = eventSearchParamsSchema.safeParse(await searchParams);
 
-  // If validation fails, redirect to error page
+  // If validation fails, redirect to events
   if (!result.success) {
-    console.error("Invalid search params:", result.error.format());
-    return redirect("/admin/events?error=invalid_params");
+    return redirect("/admin/events?");
   }
 
   // Extract validated params using the defined type
@@ -58,7 +52,7 @@ export default async function EventsViewPage({
   }
 
   return (
-    <div key={Math.random()}>
+    <div className="flex flex-col flex-grow" key={Math.random()}>
       <EventsFilters params={validatedParams} />
       <Suspense
         fallback={<EventsGridSkeleton count={validatedParams.limit ?? 6} />}

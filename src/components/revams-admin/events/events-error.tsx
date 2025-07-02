@@ -14,7 +14,6 @@ export default function EventsError({ errorType, ...props }: EventsErrorProps) {
 
   const errorMessages = {
     true: "We couldn't load your events. Please try again later.",
-    invalid_params: "Invalid search parameters.",
     fetch_failed: "Failed to fetch events from the server.",
   };
 
