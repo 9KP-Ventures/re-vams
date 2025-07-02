@@ -21,7 +21,9 @@ export default function EventCard({
       <Card className="cursor-pointer p-0 overflow-hidden shadow-lg hover:shadow-sm transition-shadow">
         <CardContent className="p-8">
           <div className="flex justify-between items-start mb-4">
-            <h3 className="font-semibold text-primary">{event.name}</h3>
+            <h3 className="font-semibold text-primary truncate">
+              {event.name}
+            </h3>
             <div className="flex items-center gap-8">
               <span
                 className={cn(

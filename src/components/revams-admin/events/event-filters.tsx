@@ -179,9 +179,11 @@ export default function EventsFilters({
   }, [isSortOpen, activeSort]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [searchValue, setSearchValue] = useState(params.search || "");
+  const [searchValue, setSearchValue] = useState(
+    params.search ? decodeURIComponent(params.search) : ""
+  );
   const [oldSearchValue, setOldSearchValue] = useState(() => {
-    return params.search || "";
+    return params.search ? decodeURIComponent(params.search) : "";
   });
 
   // Update a single draft filter
