@@ -12,7 +12,6 @@ import EventsGridWrapper from "@/components/revams-admin/events/events-grid-wrap
 // Define a schema for your search params
 const eventSearchParamsSchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).optional(),
-  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   search: z.string().optional(),
   sort: z.string().optional(),
   order: z.enum(["asc", "desc"]).optional(),
@@ -54,9 +53,7 @@ export default async function EventsViewPage({
   return (
     <div className="flex flex-col flex-grow" key={Math.random()}>
       <EventsFilters params={validatedParams} />
-      <Suspense
-        fallback={<EventsGridSkeleton count={validatedParams.limit ?? 6} />}
-      >
+      <Suspense fallback={<EventsGridSkeleton count={6} />}>
         <EventsGridWrapper params={validatedParams} />
       </Suspense>
     </div>
