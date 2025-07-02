@@ -25,7 +25,7 @@ export async function getPrograms(): Promise<
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch programs: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetProgramsDataSuccess = await response.json();

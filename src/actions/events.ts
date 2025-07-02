@@ -35,7 +35,7 @@ export async function getEvents(
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch events: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetEventsDataSuccess = await response.json();

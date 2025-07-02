@@ -27,7 +27,7 @@ export async function fetchStudentData(
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch student data: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetStudentDataSuccess = await response.json();
@@ -45,7 +45,7 @@ export async function fetchStudentData(
       const { error } = codeData;
 
       console.log(error);
-      throw new Error(`Failed to fetch student code data: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const codeData: GenerateCodeSuccess = await codeResponse.json();
@@ -55,7 +55,8 @@ export async function fetchStudentData(
       ...student,
       code,
     };
-  } catch {
+  } catch (error) {
+    console.log("Fetching student data error:", error);
     return null;
   }
 }

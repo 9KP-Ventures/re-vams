@@ -20,7 +20,7 @@ export async function getYearLevels(): Promise<
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch year levels: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetYearLevelsDataSuccess = await response.json();
@@ -28,11 +28,6 @@ export async function getYearLevels(): Promise<
   } catch (error) {
     console.error("Error fetching year levels:", error);
     // Fallback to mock data if endpoint doesn't exist yet
-    return [
-      { id: 1, name: "1st Year" },
-      { id: 2, name: "2nd Year" },
-      { id: 3, name: "3rd Year" },
-      { id: 4, name: "4th Year" },
-    ] as GetYearLevelsDataSuccess["year_levels"];
+    return [{ id: -1, name: error }] as GetYearLevelsDataSuccess["year_levels"];
   }
 }

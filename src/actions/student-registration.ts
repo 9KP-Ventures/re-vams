@@ -82,7 +82,7 @@ export const verifyStudentIdByLastName = async (
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch student data: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetStudentDataSuccess = await response.json();
@@ -115,7 +115,7 @@ export const checkStudentIdIfExists = async (id: string) => {
       const { error } = data;
 
       console.log(error);
-      throw new Error(`Failed to fetch student data: ${error.message}`);
+      throw new Error(`${error.message}`);
     }
 
     const data: GetStudentDataSuccess = await response.json();

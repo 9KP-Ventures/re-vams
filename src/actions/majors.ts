@@ -35,7 +35,7 @@ export async function getMajorsForProgram(
 
     return majors;
   } catch (error) {
-    console.error(`Error fetching majors for program ${programId}:`, error);
+    console.error(`Error fetching majors`, error);
     return [];
   }
 }
