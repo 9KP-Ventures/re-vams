@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,11 @@ export default function EventsFilters({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [origin, setOrigin] = useState<string>("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchValue, setSearchValue] = useState(params.search || "");
@@ -42,7 +47,14 @@ export default function EventsFilters({
           placeholder="Search events..."
           className="w-full h-10 px-9"
           onBlur={() => {
-            router.push(`/admin/events?search=${searchValue}`);
+            const url = new URL(`${origin}/admin/events`);
+            Object.entries(params).forEach(([key, value]) => {
+              if (value !== undefined) {
+                url.searchParams.append(key, String(value));
+              }
+            });
+            url.searchParams.append("search", encodeURIComponent(searchValue));
+            router.push(url.toString());
           }}
           onKeyDown={e => {
             if (e.key === "Enter") {
@@ -79,7 +91,7 @@ export default function EventsFilters({
               pathname,
               query: {
                 ...params,
-                active: true,
+                status: "active",
               },
             }}
           >
