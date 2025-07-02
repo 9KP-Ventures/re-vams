@@ -49,6 +49,8 @@ export default function StudentCodeDisplay({ studentData }: Props) {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = () => reject(new Error(`Failed to load logo: ${path}`));
+      // Enable cross-origin for better image quality
+      img.crossOrigin = "anonymous";
       img.src = path;
     });
   };
@@ -69,82 +71,107 @@ export default function StudentCodeDisplay({ studentData }: Props) {
         loadLogo("/re-vams-logo.png"), // Add your second logo path
       ]);
 
-      // QR code size and layout
-      const qrSize = 250;
-      const padding = 20;
-      const logoHeight = 60;
-      const logoSpacing = 8; // Reduced from 15
-      const textAreaHeight = 80;
+      // High-DPI settings for better quality
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const scaleFactor = Math.max(devicePixelRatio, 2); // Minimum 2x for quality
+
+      // QR code size and layout (base dimensions)
+      const baseQrSize = 300; // Increased from 250
+      const basePadding = 25; // Increased from 20
+      const baseLogoHeight = 80; // Increased from 60
+      const baseLogoSpacing = 12; // Increased from 8
+      const baseTextAreaHeight = 100; // Increased from 80
+
+      // Scale everything up for high DPI
+      const qrSize = baseQrSize * scaleFactor;
+      const padding = basePadding * scaleFactor;
+      const logoHeight = baseLogoHeight * scaleFactor;
+      const logoSpacing = baseLogoSpacing * scaleFactor;
+      const textAreaHeight = baseTextAreaHeight * scaleFactor;
 
       const canvasWidth = qrSize + padding * 2;
       const canvasHeight =
         logoHeight + logoSpacing + qrSize + padding * 2 + textAreaHeight;
 
-      // Create canvas
+      // Create high-DPI canvas
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // Set actual canvas size
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
 
+      // Set display size (for download, we want full resolution)
+      canvas.style.width = `${canvasWidth / scaleFactor}px`;
+      canvas.style.height = `${canvasHeight / scaleFactor}px`;
+
+      // Enable high-quality image rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      // Scale the context for high-DPI
+      ctx.scale(scaleFactor, scaleFactor);
+
       // White background
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvasWidth / scaleFactor, canvasHeight / scaleFactor);
 
-      // Draw both logos side by side
-      const logo1Width = (logo1.width / logo1.height) * logoHeight;
-      const logo2Width = (logo2.width / logo2.height) * logoHeight;
-      const totalLogosWidth = logo1Width + logo2Width + 20; // 20px spacing between logos
-      const startX = (canvas.width - totalLogosWidth) / 2;
+      // Calculate logo dimensions (using base dimensions for calculations)
+      const logo1Width = (logo1.width / logo1.height) * baseLogoHeight;
+      const logo2Width = (logo2.width / logo2.height) * baseLogoHeight;
+      const totalLogosWidth = logo1Width + logo2Width + 25; // 25px spacing between logos
+      const startX = (canvasWidth / scaleFactor - totalLogosWidth) / 2;
 
-      // Draw first logo
-      ctx.drawImage(logo1, startX, padding, logo1Width, logoHeight);
-      // Draw second logo
+      // Draw logos with high quality
+      ctx.drawImage(logo1, startX, basePadding, logo1Width, baseLogoHeight);
       ctx.drawImage(
         logo2,
-        startX + logo1Width + 20,
-        padding,
+        startX + logo1Width + 25,
+        basePadding,
         logo2Width,
-        logoHeight
+        baseLogoHeight
       );
 
-      // Generate QR code
+      // Generate high-quality QR code
       const qrCanvas = document.createElement("canvas");
       await QRCode.toCanvas(qrCanvas, studentData.code, {
-        width: qrSize,
+        width: qrSize, // Use scaled size
         margin: 2,
         color: { dark: "#000000", light: "#FFFFFF" },
+        errorCorrectionLevel: "M", // Medium error correction for better quality
       });
 
-      const qrY = padding + logoHeight + logoSpacing;
-      ctx.drawImage(qrCanvas, padding, qrY, qrSize, qrSize);
+      const qrY = basePadding + baseLogoHeight + baseLogoSpacing;
+      ctx.drawImage(qrCanvas, basePadding, qrY, baseQrSize, baseQrSize);
 
-      // Add student info with wide tracking and bold last name
+      // Add student info with scaled fonts
       ctx.fillStyle = "#000000";
       ctx.textAlign = "center";
 
-      const textStartY = qrY + qrSize + 25;
-      ctx.font = "bold 18px Arial";
+      const textStartY = qrY + baseQrSize + 30;
+
+      // Student ID
+      ctx.font = `bold ${(22 * scaleFactor) / scaleFactor}px Arial`; // Maintain readable size
       ctx.fillText(
         `${obfuscateName(studentData.id)}`,
-        canvas.width / 2,
+        canvasWidth / scaleFactor / 2,
         textStartY
       );
 
       // First name with wide letter spacing
-      ctx.font = "16px Arial";
+      ctx.font = `${(18 * scaleFactor) / scaleFactor}px Arial`;
       const firstName = obfuscateName(studentData.firstName);
       const lastInitial = `${studentData.lastName.charAt(0)}.`;
 
       // Draw first name with tracking
-      const charSpacing = 2; // Extra spacing between characters
+      const charSpacing = 3; // Extra spacing between characters
       let currentX =
-        canvas.width / 2 -
+        canvasWidth / scaleFactor / 2 -
         ctx.measureText(`${firstName} ${lastInitial}`).width / 2;
 
       for (let i = 0; i < firstName.length; i++) {
-        ctx.fillText(firstName[i], currentX, textStartY + 25);
+        ctx.fillText(firstName[i], currentX, textStartY + 30);
         currentX += ctx.measureText(firstName[i]).width + charSpacing;
       }
 
@@ -152,24 +179,33 @@ export default function StudentCodeDisplay({ studentData }: Props) {
       currentX += ctx.measureText(" ").width;
 
       // Draw last initial in bold
-      ctx.font = "bold 16px Arial";
-      ctx.fillText(lastInitial, currentX, textStartY + 25);
+      ctx.font = `bold ${(18 * scaleFactor) / scaleFactor}px Arial`;
+      ctx.fillText(lastInitial, currentX, textStartY + 30);
 
-      ctx.font = "16px Arial";
-      ctx.fillText("VSU Baybay Campus", canvas.width / 2, textStartY + 50);
+      // University name
+      ctx.font = `${(16 * scaleFactor) / scaleFactor}px Arial`;
+      ctx.fillText(
+        "VSU Baybay Campus",
+        canvasWidth / scaleFactor / 2,
+        textStartY + 60
+      );
 
-      // Download
-      canvas.toBlob(blob => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${studentData.id}-qr-code.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, "image/png");
+      // Download with high quality
+      canvas.toBlob(
+        blob => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${studentData.id}-qr-code.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+        "image/png",
+        1.0
+      ); // Maximum quality PNG
     } catch (error) {
       console.error("Error generating QR code:", error);
     } finally {
