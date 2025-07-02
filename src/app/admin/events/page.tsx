@@ -4,7 +4,6 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import EventsError from "@/components/revams-admin/events/events-error";
 import EventsHeader from "@/components/revams-admin/events/events-header";
-import EventsStats from "@/components/revams-admin/events/event-stats";
 import EventsFilters from "@/components/revams-admin/events/event-filters";
 import { Suspense } from "react";
 import { EventsGridSkeleton } from "@/components/revams-admin/events/events-grid-skeleton";
@@ -59,14 +58,8 @@ export default async function EventsViewPage({
   }
 
   return (
-    <div className="px-20 pt-16 pb-8 min-h-dvh flex flex-col">
-      <EventsHeader />
-      <EventsStats />
-      <EventsFilters
-        initialSearch={validatedParams.search}
-        initialSortBy={validatedParams.sort}
-        initialSortOrder={validatedParams.order}
-      />
+    <div key={Math.random()}>
+      <EventsFilters params={validatedParams} />
       <Suspense
         fallback={<EventsGridSkeleton count={validatedParams.limit ?? 6} />}
       >

@@ -1,4 +1,3 @@
-// events-grid-container.tsx (server component)
 "use server";
 
 import { getEvents } from "@/actions/events";
@@ -7,7 +6,7 @@ import NoEvents from "./no-events";
 import { ValidatedSearchParams } from "@/app/admin/events/page";
 import EventsPagination from "./event-pagination";
 
-export default async function EventsGridContainer({
+export default async function EventsGridWrapper({
   params,
 }: {
   params: ValidatedSearchParams;
@@ -28,7 +27,7 @@ export default async function EventsGridContainer({
   return (
     <div className="flex-grow flex flex-col justify-between gap-8">
       <EventsGrid events={eventsData.events} />
-      <EventsPagination pagination={eventsData.pagination} />
+      <EventsPagination pagination={eventsData.pagination} params={params}/>
     </div>
   );
 }

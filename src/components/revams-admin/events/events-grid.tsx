@@ -1,3 +1,5 @@
+"use client";
+
 import { GetEventsDataSuccess } from "@/lib/requests/events/get-many";
 import EventCard from "./event-card";
 
