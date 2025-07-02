@@ -7,14 +7,12 @@ import { EventsStatsData } from "./event-stats-data";
 export default async function EventsStats() {
   return (
     <div
-      className="bg-secondary/12 py-7 rounded-lg mb-11"
+      className="bg-secondary/12 dark:bg-primary/40 py-4 sm:py-5 md:py-7 px-3 sm:px-4 md:px-6 rounded-lg mb-6 sm:mb-8 md:mb-11"
       aria-label="Events statistics"
     >
-      <div className="grid grid-cols-4 gap-4">
-        <Suspense fallback={<EventsStatsSkeleton />}>
-          <EventsStatsData />
-        </Suspense>
-      </div>
+      <Suspense fallback={<EventsStatsSkeleton />}>
+        <EventsStatsData />
+      </Suspense>
     </div>
   );
 }

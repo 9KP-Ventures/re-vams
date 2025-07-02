@@ -6,8 +6,8 @@ import EventsError from "@/components/revams-admin/events/events-error";
 import EventsHeader from "@/components/revams-admin/events/events-header";
 import EventsFilters from "@/components/revams-admin/events/event-filters";
 import { Suspense } from "react";
-import { EventsGridSkeleton } from "@/components/revams-admin/events/events-grid-skeleton";
 import EventsGridWrapper from "@/components/revams-admin/events/events-grid-wrapper";
+import EventsContentFallback from "@/components/revams-admin/events/events-content-fallback";
 
 // Define a schema for your search params
 const eventSearchParamsSchema = z.object({
@@ -52,9 +52,9 @@ export default async function EventsViewPage({
   }
 
   return (
-    <div className="flex flex-col flex-grow" key={Math.random()}>
+    <div className="flex flex-col flex-grow min-h-[595px]" key={Math.random()}>
       <EventsFilters params={validatedParams} />
-      <Suspense fallback={<EventsGridSkeleton count={6} />}>
+      <Suspense fallback={<EventsContentFallback />}>
         <EventsGridWrapper params={validatedParams} />
       </Suspense>
     </div>

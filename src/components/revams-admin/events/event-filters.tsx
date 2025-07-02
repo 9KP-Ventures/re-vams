@@ -265,8 +265,8 @@ export default function EventsFilters({
   };
 
   return (
-    <div className="grid grid-cols-3 gap-12 mb-14">
-      <div className="relative flex-1">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 grid-rows-3 md:grid-rows-2 lg:grid-rows-1 gap-x-12 gap-y-3 mb-14">
+      <div className="relative flex-1 col-span-2 lg:col-span-1 w-full md:w-[80%] lg:w-full">
         <Label htmlFor="search" className="sr-only">
           Search events
         </Label>
@@ -322,14 +322,14 @@ export default function EventsFilters({
           </Link>
         )}
       </div>
-      <div className="flex gap-5">
+      <div className="flex gap-5 row-start-2 lg:row-start-1 col-start-1 lg:col-start-2">
         {/* Filter Popover */}
         <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="lg"
-              className="flex items-center gap-2 min-w-[17%] relative"
+              className="flex items-center gap-2 min-w-[103px] relative"
             >
               <FilterIcon size={16} />
               <span>Filters</span>
@@ -345,7 +345,7 @@ export default function EventsFilters({
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
             {/* Header */}
-            <div className="p-4 border-b">
+            <div className="px-4 pb-2 py-2 sm:py-4 border-b">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Filters</h3>
                 <Button
@@ -360,7 +360,7 @@ export default function EventsFilters({
                   Clear all
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 {draftFilterCount > 0
                   ? `${draftFilterCount} filter${
                       draftFilterCount > 1 ? "s" : ""
@@ -447,7 +447,7 @@ export default function EventsFilters({
             </div>
 
             {/* Footer Actions */}
-            <div className="p-3 bg-muted/20 flex justify-between">
+            <div className="px-4 pb-2 sm:pb-4 bg-muted/20 flex justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -481,11 +481,11 @@ export default function EventsFilters({
               <span>{getSortButtonLabel()}</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-0" align="start">
+          <PopoverContent className="w-72 p-0 mr-4" align="start">
             {/* Header */}
-            <div className="p-4 border-b">
+            <div className="px-4 pb-2 py-2 sm:py-4 border-b">
               <h3 className="font-semibold text-lg">Sort By</h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 Choose a field and direction to sort events
               </p>
             </div>
@@ -551,7 +551,7 @@ export default function EventsFilters({
             </div>
 
             {/* Footer Actions */}
-            <div className="p-3 bg-muted/20 flex justify-between">
+            <div className="px-4 pb-2 sm:pb-4 bg-muted/20 flex justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -572,18 +572,14 @@ export default function EventsFilters({
           </PopoverContent>
         </Popover>
       </div>
-      <div className="w-full flex gap-5 justify-end">
+      <div className="w-full flex gap-5 md:justify-end row-start-3 md:row-start-1 col-start-1 md:col-start-3">
         <Button asChild size="lg" variant="outline" className="w-fit">
           <Link href="/admin/events?" className="flex items-center gap-2">
             <RefreshCwIcon size={16} />
             Refresh
           </Link>
         </Button>
-        <Button
-          size="lg"
-          variant="secondary"
-          className="flex items-center gap-2 w-fit"
-        >
+        <Button size="lg" className="flex items-center gap-2 w-fit">
           <Plus size={16} />
           Create
         </Button>

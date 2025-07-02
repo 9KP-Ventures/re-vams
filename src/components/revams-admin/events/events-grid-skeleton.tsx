@@ -3,11 +3,21 @@ import EventCardSkeleton from "./event-card-skeleton";
 export function EventsGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <ul
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-11"
+      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12"
       aria-label="Event cards loading"
     >
       {Array.from({ length: count }, (_, i) => (
-        <EventCardSkeleton key={i} />
+	<div 
+	  key={i}
+	  className={`
+            ${i >= 1 ? 'hidden' : ''} 
+            ${i >= 1 && i < 3 ? 'md:block' : ''} 
+            ${i >= 3 && i < 4 ? 'md:hidden xl:block' : ''}
+            ${i >= 4 ? 'hidden' : ''}
+          `}
+	>
+	  <EventCardSkeleton />
+	</div>
       ))}
     </ul>
   );

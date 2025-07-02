@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 export default function EventCard({
   event,
@@ -20,14 +21,14 @@ export default function EventCard({
     <li role="button">
       <Card className="cursor-pointer p-0 overflow-hidden shadow-lg hover:shadow-sm transition-shadow">
         <CardContent className="p-8">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="font-semibold text-primary truncate">
+          <div className="flex gap-2 justify-between items-start mb-4">
+            <h3 className="font-semibold text-primary dark:text-foreground truncate">
               {event.name}
             </h3>
-            <div className="flex items-center gap-8">
-              <span
+            <div className="flex items-center gap-3 min-[1250px]:gap-8">
+              <Badge
                 className={cn(
-                  "capitalize px-10 py-1 text-xs font-medium rounded-full bg-accent text-accent-foreground",
+                  "capitalize min-[1250px]:px-10 text-xs rounded-full",
                   event.status === "active"
                     ? "text-accent-foreground bg-accent"
                     : event.status === "inactive"
@@ -36,14 +37,14 @@ export default function EventCard({
                 )}
               >
                 {event.status}
-              </span>
+              </Badge>
               <button className="cursor-pointer text-foreground/60 hover:text-foreground/80">
                 <MoreHorizontal size={24} />
               </button>
             </div>
           </div>
 
-          <div className="space-y-2 text-sm text-green-950">
+          <div className="space-y-2 text-sm text-green-950 dark:text-muted-foreground">
             <div className="space-x-2 flex items-center">
               <CalendarIcon size={14} />
               <span>
