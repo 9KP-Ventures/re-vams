@@ -9,7 +9,7 @@ export default function EventCardSkeleton() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 pb-7">
           <div className="flex items-center">
             <div className="w-4 h-4 rounded-full bg-muted mr-2"></div>
             <div className="h-4 bg-muted rounded w-1/3"></div>
@@ -22,12 +22,7 @@ export default function EventCardSkeleton() {
 
           <div className="flex items-center">
             <div className="w-4 h-4 rounded-full bg-muted mr-2"></div>
-            <div className="h-4 bg-muted rounded w-2/5"></div>
-          </div>
-
-          <div className="flex items-center">
-            <div className="w-4 h-4 rounded-full bg-muted mr-2"></div>
-            <div className="h-4 bg-muted rounded w-1/3"></div>
+            <div className="h-4 bg-muted rounded w-1/4"></div>
           </div>
         </div>
       </div>

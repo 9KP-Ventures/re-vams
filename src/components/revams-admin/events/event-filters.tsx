@@ -447,7 +447,7 @@ export default function EventsFilters({
             </div>
 
             {/* Footer Actions */}
-            <div className="px-4 pb-2 sm:pb-4 bg-muted/20 flex justify-between">
+            <div className="px-4 pt-2 pb-2 sm:pb-4 bg-muted/20 flex justify-between">
               <Button
                 variant="outline"
                 size="sm"

@@ -1,13 +1,7 @@
 "use client";
 
 import { GetEventsDataSuccess } from "@/lib/requests/events/get-many";
-import {
-  CalendarIcon,
-  ClockIcon,
-  UsersIcon,
-  MoreHorizontal,
-  PhilippinePeso,
-} from "lucide-react";
+import { CalendarIcon, ClockIcon, MoreHorizontal, School } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -25,10 +19,10 @@ export default function EventCard({
             <h3 className="font-semibold text-primary dark:text-foreground truncate">
               {event.name}
             </h3>
-            <div className="flex items-center gap-3 min-[1250px]:gap-8">
+            <div className="flex items-center gap-4">
               <Badge
                 className={cn(
-                  "capitalize min-[1250px]:px-10 text-xs rounded-full",
+                  "capitalize text-xs rounded-full",
                   event.status === "active"
                     ? "text-accent-foreground bg-accent"
                     : event.status === "inactive"
@@ -44,7 +38,7 @@ export default function EventCard({
             </div>
           </div>
 
-          <div className="space-y-2 text-sm text-green-950 dark:text-muted-foreground">
+          <div className="space-y-2 pb-7 text-sm text-green-950 dark:text-muted-foreground">
             <div className="space-x-2 flex items-center">
               <CalendarIcon size={14} />
               <span>
@@ -58,17 +52,11 @@ export default function EventCard({
 
             <div className="space-x-2 flex items-center">
               <ClockIcon size={14} />
-              <span>8:00 to 12:00</span>
+              <span>&mdash; to &mdash;</span>
             </div>
-
             <div className="space-x-2 flex items-center">
-              <UsersIcon size={14} />
-              <span>1,908 Attendees</span>
-            </div>
-
-            <div className="space-x-2 flex items-center">
-              <PhilippinePeso size={14} />
-              <span>50 Revenue Generated</span>
+              <School size={14} />
+              <span className="capitalize">{event.semesters.name ?? ""}</span>
             </div>
           </div>
         </CardContent>
