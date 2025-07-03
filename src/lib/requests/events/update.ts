@@ -1,7 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { FormRequest } from "../base-request";
-import { Tables } from "@/app/utils/supabase/types";
+import { GetEventDataSuccess } from "./get+delete";
 
 // -----------------------------
 // Schema Definitions
@@ -39,11 +39,7 @@ const updateEventSchema = z
 
 export type UpdateEventData = z.infer<typeof updateEventSchema>;
 export type UpdateEventDataSuccess = {
-  event: Omit<Tables<"events">, "organization_id" & "semester_id"> & {
-    organization: Tables<"organizations">;
-  } & {
-    semester: Tables<"semesters">;
-  };
+  event: GetEventDataSuccess["event"];
 };
 export type UpdateEventDataError = { error: { code: number; message: string } };
 

@@ -1,7 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
-import { Tables } from "@/app/utils/supabase/types";
+import { GetEventDataSuccess } from "./get+delete";
 
 // -----------------------------
 // Schema Definitions
@@ -22,13 +22,7 @@ const getEventsSchema = z.object({
 
 export type GetEventsData = z.infer<typeof getEventsSchema>;
 export type GetEventsDataSuccess = {
-  events: Array<
-    Omit<Tables<"events">, "organization_id" & "semester_id"> & {
-      organization: Tables<"organizations">;
-    } & {
-      semester: Tables<"semesters">;
-    }
-  >;
+  events: GetEventDataSuccess["event"][];
   pagination: {
     page: number;
     limit: number;
@@ -43,7 +37,7 @@ export type GetEventsDataSuccess = {
     date_from?: string;
     date_to?: string;
     status?: boolean;
-    semester_id?:number;
+    semester_id?: number;
   };
   sort: {
     by: string;

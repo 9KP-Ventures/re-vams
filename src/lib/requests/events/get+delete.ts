@@ -13,10 +13,10 @@ const getEventSchema = z.object({
 
 export type GetEventData = z.infer<typeof getEventSchema>;
 export type GetEventDataSuccess = {
-  event: Omit<Tables<"events">, "organization_id" & "semester_id"> & {
+  event: Omit<Tables<"events">, "organization_id" | "semester_id"> & {
     organization: Tables<"organizations">;
   } & {
-    semester: Tables<"semesters">;
+    semesters: Tables<"semesters">;
   };
 };
 export type GetEventDataError = { error: { code: number; message: string } };

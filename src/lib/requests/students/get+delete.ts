@@ -17,9 +17,9 @@ export type GetStudentDataSuccess = {
     Tables<"students">,
     "program_id" | "year_level_id" | "major_id"
   > & {
-    program: Tables<"programs">;
-    year_level: Tables<"year_levels">;
-    major: Tables<"majors">;
+    programs: Tables<"programs">;
+    year_levels: Tables<"year_levels">;
+    majors: Tables<"majors">;
   };
 };
 export type GetStudentDataError = {
