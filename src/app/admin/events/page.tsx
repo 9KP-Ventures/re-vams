@@ -8,15 +8,24 @@ import EventsFilters from "@/components/revams-admin/events/event-filters";
 import { Suspense } from "react";
 import EventsGridWrapper from "@/components/revams-admin/events/events-grid-wrapper";
 import EventsContentFallback from "@/components/revams-admin/events/events-content-fallback";
+import EventsStats from "@/components/revams-admin/events/event-stats";
+import { Constants } from "@/app/utils/supabase/types";
+import {
+  GET_EVENTS_SORT_ORDERS,
+  GET_EVENTS_SORT_OPTIONS,
+} from "@/lib/requests/events/get-many";
 
 // Define a schema for your search params
 const eventSearchParamsSchema = z.object({
-  page: z.string().regex(/^\d+$/).transform(Number).optional(),
+  page: z.coerce.number().optional().default(1),
   search: z.string().optional(),
-  sort: z.string().optional(),
-  order: z.enum(["asc", "desc"]).optional(),
+  sort: z.enum(GET_EVENTS_SORT_OPTIONS).optional().default("date"),
+  order: z.enum(GET_EVENTS_SORT_ORDERS).optional().default("desc"),
   error: z.string().optional(),
-  status: z.string().optional(),
+  status: z
+    .enum([...Constants.public.Enums.Status, ""] as const)
+    .optional()
+    .default(""),
   semester_id: z.string().optional(),
 });
 
@@ -52,11 +61,18 @@ export default async function EventsViewPage({
   }
 
   return (
-    <div className="flex flex-col flex-grow min-h-[595px]" key={Math.random()}>
-      <EventsFilters params={validatedParams} />
-      <Suspense fallback={<EventsContentFallback />}>
-        <EventsGridWrapper params={validatedParams} />
-      </Suspense>
-    </div>
+    <>
+      <EventsHeader />
+      <EventsStats />
+      <div
+        className="flex flex-col flex-grow min-h-[595px]"
+        key={Math.random()}
+      >
+        <EventsFilters />
+        <Suspense fallback={<EventsContentFallback />}>
+          <EventsGridWrapper params={validatedParams} />
+        </Suspense>
+      </div>
+    </>
   );
 }

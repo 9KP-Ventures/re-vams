@@ -2,22 +2,31 @@ import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
 import { GetEventDataSuccess } from "./get+delete";
+import { Constants } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
+export const GET_EVENTS_SORT_OPTIONS = [
+  "id",
+  "name",
+  "date",
+  "created_at",
+  "organization_id",
+] as const;
+export const GET_EVENTS_SORT_ORDERS = ["asc", "desc"] as const;
 
 const getEventsSchema = z.object({
   page: z.coerce.number().int().min(1),
   limit: z.coerce.number().int().min(1).max(100),
   search: z.string().optional(),
-  status: z.enum(["active", "inactive"]).optional(),
+  status: z.enum([...Constants.public.Enums.Status, ""] as const).optional(),
   semester_id: z.coerce.number().int().min(1).optional(),
   organization_id: z.coerce.number().int().min(1).optional(),
   date_from: z.string().date().optional(),
   date_to: z.string().date().optional(),
-  sort_by: z.enum(["id", "name", "date", "created_at", "organization_id"]),
-  sort_order: z.enum(["asc", "desc"]),
+  sort_by: z.enum(GET_EVENTS_SORT_OPTIONS),
+  sort_order: z.enum(GET_EVENTS_SORT_ORDERS),
 });
 
 export type GetEventsData = z.infer<typeof getEventsSchema>;
@@ -36,7 +45,7 @@ export type GetEventsDataSuccess = {
     organization_id?: number;
     date_from?: string;
     date_to?: string;
-    status?: boolean;
+    status?: string;
     semester_id?: number;
   };
   sort: {
@@ -45,6 +54,13 @@ export type GetEventsDataSuccess = {
   };
 };
 export type GetEventsDataError = { error: { code: number; message: string } };
+
+// Note: For non-api response type variable names, do not use "Data" name, ex: GetEventsData{success | error | request}
+// The types below are non-api response types, variable names will omit "Data"
+export type GetEventsStatusType =
+  (typeof Constants.public.Enums.Status)[number];
+export type GetEventsSortType = (typeof GET_EVENTS_SORT_OPTIONS)[number];
+export type GetEventsOrderType = (typeof GET_EVENTS_SORT_ORDERS)[number];
 
 // -----------------------------
 // GetEventsRequest Class

@@ -23,14 +23,14 @@ export async function getEvents(
 
     // Build query string from defaulted params with proper typing
     const paramConfig: Record<string, ParamConfig> = {
-      page: { apiKey: "page", default: 1, transform: String },
+      page: { apiKey: "page" },
       limit: { apiKey: "limit", default: 6, transform: String },
       search: {
         apiKey: "search",
         transform: (v: ParamValue) => encodeURIComponent(String(v)),
       },
-      sort: { apiKey: "sort_by", default: "date" },
-      order: { apiKey: "sort_order", default: "desc" },
+      sort: { apiKey: "sort_by" },
+      order: { apiKey: "sort_order" },
       status: { apiKey: "status" },
       semester_id: { apiKey: "semester_id" },
     };
@@ -76,16 +76,16 @@ export async function getEvents(
     return null;
   }
 }
-export interface EventStats {
+export interface EventsStats {
   totalEvents: number;
   activeEvents: number;
   totalRevenue: number;
   averageAttendees: number;
 }
 
-export async function getEventStats(): Promise<EventStats> {
+export async function getEventsStats(): Promise<EventsStats> {
   // Simulate API call
-  await new Promise(r => setTimeout(r, 5000));
+  await new Promise(r => setTimeout(r, 2000));
 
   // TODO, fetch stats via function in Supabase
   return {
@@ -93,5 +93,5 @@ export async function getEventStats(): Promise<EventStats> {
     activeEvents: 0,
     totalRevenue: 0,
     averageAttendees: 0,
-  } as EventStats;
+  } as EventsStats;
 }

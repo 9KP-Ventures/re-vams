@@ -1,7 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import {
   SortDescIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { ValidatedSearchParams } from "@/app/admin/events/page";
 import { GetSemestersDataSuccess } from "@/lib/requests/semesters/get-many";
 import { getSemesters } from "@/actions/semesters";
 import {
@@ -31,9 +29,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { FilterGroup } from "./event-filter-group";
 import React from "react";
+import { useRouter } from "next/navigation";
+import { useEventsParams } from "@/lib/hooks/event-params";
+import {
+  GetEventsStatusType,
+  GetEventsSortType,
+  GetEventsOrderType,
+} from "@/lib/requests/events/get-many";
 
 interface StatusOption {
-  value: "active" | "inactive";
+  value: GetEventsStatusType;
   label: string;
 }
 
@@ -43,7 +48,7 @@ const STATUS_OPTIONS: StatusOption[] = [
 ];
 
 interface SortOption {
-  key: string;
+  key: GetEventsSortType;
   label: string;
   icon: (order: string) => React.ReactNode;
 }
@@ -72,7 +77,7 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 interface OrderOption {
-  value: "asc" | "desc";
+  value: GetEventsOrderType;
   label: string;
 }
 
@@ -81,61 +86,47 @@ const ORDER_OPTIONS: OrderOption[] = [
   { value: "desc", label: "Descending" },
 ];
 
-export default function EventsFilters({
-  params,
-}: {
-  params: ValidatedSearchParams;
-}) {
-  const pathname = usePathname();
+export default function EventsFilters() {
   const router = useRouter();
-  const [origin, setOrigin] = useState<string>("");
+
+  const {
+    search,
+    setSearch,
+    status,
+    setStatus,
+    semesterId,
+    setSemesterId,
+    sort,
+    order,
+    setSortWithOrder,
+    isPending,
+  } = useEventsParams();
+
+  // Component state
   const [semesters, setSemesters] = useState<
     GetSemestersDataSuccess["semesters"]
   >([]);
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-  // Initial filters from URL params
-  const [activeFilters, setActiveFilters] = useState({
-    status: params.status || "",
-    semesterId: params.semester_id || "",
-  });
+  // Local state for search input
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchValue, setSearchValue] = useState(search || "");
+  const [oldSearchValue, setOldSearchValue] = useState(search || "");
 
-  // Draft filters that will be applied on "Done"
+  // Draft states for filters and sort
   const [draftFilters, setDraftFilters] = useState({
-    status: params.status || "",
-    semesterId: params.semester_id || "",
+    status: status,
+    semesterId: semesterId || "",
   });
 
-  // Sort state
-  const [activeSort, setActiveSort] = useState({
-    sort: params.sort || "date",
-    order: params.order || "desc",
-  });
-
-  // Draft sort that will be applied on "Apply"
   const [draftSort, setDraftSort] = useState({
-    sort: params.sort || "date",
-    order: params.order || "desc",
+    sort: sort || "date",
+    order: order || "desc",
   });
 
-  const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
-  const draftFilterCount = Object.values(draftFilters).filter(Boolean).length;
-
-  // Calculate the sort label
-  const getSortButtonLabel = () => {
-    const sortOption = SORT_OPTIONS.find(
-      option => option.key === activeSort.sort
-    );
-    if (!sortOption) return "Sort";
-
-    return `Sort: ${sortOption.label}`;
-  };
-
+  // Effect to load semesters
   useEffect(() => {
-    setOrigin(window.location.origin);
-
     const fetchSemesters = async () => {
       const data = await getSemesters();
       setSemesters(data);
@@ -144,47 +135,84 @@ export default function EventsFilters({
     fetchSemesters();
   }, []);
 
+  // Effect to update draft states when URL params change
   useEffect(() => {
-    // Update active filters when URL params change
-    const newFilters = {
-      status: params.status || "",
-      semesterId: params.semester_id || "",
-    };
-    setActiveFilters(newFilters);
-    setDraftFilters(newFilters); // Reset draft filters too
-
-    // Update active sort
-    setActiveSort({
-      sort: params.sort || "date",
-      order: params.order || "desc",
+    // Update draft filters
+    setDraftFilters({
+      status: status,
+      semesterId: semesterId || "",
     });
+
+    // Update draft sort
     setDraftSort({
-      sort: params.sort || "date",
-      order: params.order || "desc",
+      sort: sort || "date",
+      order: order || "desc",
     });
-  }, [params]);
 
-  // When filter popover opens, initialize draft filters with current active filters
+    // Update search value
+    setSearchValue(search || "");
+    setOldSearchValue(search || "");
+  }, [search, status, semesterId, sort, order]);
+
+  // When filter popover opens, initialize draft filters with current values
   useEffect(() => {
     if (isFilterOpen) {
-      setDraftFilters({ ...activeFilters });
+      setDraftFilters({
+        status: status,
+        semesterId: semesterId || "",
+      });
     }
-  }, [isFilterOpen, activeFilters]);
+  }, [isFilterOpen, status, semesterId]);
 
-  // When sort popover opens, initialize draft sort with current active sort
+  // When sort popover opens, initialize draft sort with current values
   useEffect(() => {
     if (isSortOpen) {
-      setDraftSort({ ...activeSort });
+      setDraftSort({
+        sort: sort || "date",
+        order: order || "desc",
+      });
     }
-  }, [isSortOpen, activeSort]);
+  }, [isSortOpen, sort, order]);
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const [searchValue, setSearchValue] = useState(
-    params.search ? decodeURIComponent(params.search) : ""
-  );
-  const [oldSearchValue, setOldSearchValue] = useState(() => {
-    return params.search ? decodeURIComponent(params.search) : "";
-  });
+  // Calculate counts and labels
+  const activeFilterCount = [status, semesterId].filter(Boolean).length;
+  const draftFilterCount = Object.values(draftFilters).filter(Boolean).length;
+
+  // Calculate the sort label
+  const getSortButtonLabel = () => {
+    const sortOption = SORT_OPTIONS.find(option => option.key === sort);
+    if (!sortOption) return "Sort";
+    return `Sort: ${sortOption.label}`;
+  };
+
+  // Handle search input changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  // Handle search input blur
+  const handleSearchBlur = () => {
+    if (oldSearchValue === searchValue) {
+      return;
+    }
+
+    setOldSearchValue(searchValue);
+    setSearch(searchValue || null);
+  };
+
+  // Handle search input keydown
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      searchInputRef.current?.blur();
+    }
+  };
+
+  // Handle search clear
+  const handleSearchClear = () => {
+    setSearchValue("");
+    setOldSearchValue("");
+    setSearch(null);
+  };
 
   // Update a single draft filter
   const updateDraftFilter = (key: string, value: string) => {
@@ -194,75 +222,41 @@ export default function EventsFilters({
     }));
   };
 
-  // Apply all draft filters when Done is clicked
+  // Apply all draft filters
   const applyFilters = () => {
-    // Create a new URL with current origin and pathname
-    const url = new URL(`${origin}/admin/events`);
-
-    // Add all params except filters that will be updated
-    Object.entries(params).forEach(([key, value]) => {
-      if (
-        value !== undefined &&
-        key !== "status" &&
-        key !== "semester_id" &&
-        key !== "page"
-      ) {
-        url.searchParams.append(key, String(value));
-      }
-    });
-
-    // Add draft filters
-    if (draftFilters.status) {
-      url.searchParams.append("status", draftFilters.status);
-    }
-
-    if (draftFilters.semesterId) {
-      url.searchParams.append("semester_id", draftFilters.semesterId);
-    }
-
-    // Reset to page 1 when applying filters
-    url.searchParams.append("page", "1");
-
-    // Apply filters
-    router.push(url.toString());
+    setStatus(draftFilters.status);
+    setSemesterId(draftFilters.semesterId || null);
     setIsFilterOpen(false);
   };
 
   // Clear all draft filters
   const clearDraftFilters = () => {
     setDraftFilters({
-      status: "",
+      status: null,
       semesterId: "",
     });
   };
 
-  // Apply sort when Done is clicked
+  // Apply sort
   const applySort = () => {
-    const url = new URL(`${origin}/admin/events`);
-
-    // Add all existing params except sort params
-    Object.entries(params).forEach(([key, value]) => {
-      if (
-        value !== undefined &&
-        key !== "sort" &&
-        key !== "order" &&
-        key !== "page"
-      ) {
-        url.searchParams.append(key, String(value));
-      }
-    });
-
-    // Add sort params
-    url.searchParams.append("sort", draftSort.sort);
-    url.searchParams.append("order", draftSort.order);
-
-    // Reset to page 1 when sorting
-    url.searchParams.append("page", "1");
-
-    // Apply sort
-    router.push(url.toString());
+    setSortWithOrder(draftSort.sort, draftSort.order as "asc" | "desc");
     setIsSortOpen(false);
   };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    router.replace("/admin/events");
+  };
+
+  // Check if filter drafts have changed
+  const hasFilterChanges =
+    draftFilters.status !== (status || "") ||
+    draftFilters.semesterId !== (semesterId || "");
+
+  // Check if sort drafts have changed
+  const hasSortChanges =
+    draftSort.sort !== (sort || "date") ||
+    draftSort.order !== (order || "desc");
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 grid-rows-3 md:grid-rows-2 lg:grid-rows-1 gap-x-12 gap-y-3 mb-14">
@@ -274,58 +268,32 @@ export default function EventsFilters({
           id="search"
           ref={searchInputRef}
           type="text"
-          value={searchValue} // Always a string, never undefined
-          onChange={e => setSearchValue(e.target.value)}
+          value={searchValue}
+          onChange={handleSearchChange}
+          onBlur={handleSearchBlur}
+          onKeyDown={handleSearchKeyDown}
           placeholder="Search events..."
           className="w-full h-10 px-9"
-          onBlur={e => {
-            const { value: currentValue } = e.target;
-            if (oldSearchValue === currentValue) {
-              return;
-            }
-            setOldSearchValue(currentValue);
-
-            const url = new URL(`${origin}/admin/events`);
-            Object.entries(params).forEach(([key, value]) => {
-              if (value !== undefined && key !== "search") {
-                url.searchParams.append(key, String(value));
-              }
-            });
-            if (currentValue) {
-              url.searchParams.append(
-                "search",
-                encodeURIComponent(currentValue)
-              );
-            }
-            router.push(url.toString());
-          }}
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              searchInputRef.current?.blur();
-            }
-          }}
+          disabled={isPending}
         />
         <span className="cursor-pointer absolute left-3 top-1/2 transform -translate-y-1/2">
           <Search size={18} />
         </span>
         {searchValue.length > 0 && (
-          <Link
-            role="button"
+          <button
+            type="button"
             aria-label="Clear search"
             className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
-            href={pathname}
-            onClick={() => {
-              setSearchValue("");
-            }}
+            onClick={handleSearchClear}
           >
             <X size={18} />
-          </Link>
+          </button>
         )}
       </div>
       <div className="flex gap-5 row-start-2 lg:row-start-1 col-start-1 lg:col-start-2">
         {/* Filter Popover */}
         <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <PopoverTrigger asChild>
+          <PopoverTrigger asChild disabled={isPending}>
             <Button
               variant="outline"
               size="lg"
@@ -374,7 +342,7 @@ export default function EventsFilters({
               {/* Status Filter Group */}
               <FilterGroup
                 title="Status"
-                activeFilter={draftFilters.status}
+                activeFilter={draftFilters.status ?? ""}
                 badgeCount={draftFilters.status ? 1 : 0}
               >
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -458,9 +426,7 @@ export default function EventsFilters({
               <Button
                 size="sm"
                 onClick={applyFilters}
-                disabled={
-                  JSON.stringify(draftFilters) === JSON.stringify(activeFilters)
-                }
+                disabled={!hasFilterChanges}
               >
                 Apply Filters
               </Button>
@@ -470,14 +436,13 @@ export default function EventsFilters({
 
         {/* Sort Popover */}
         <Popover open={isSortOpen} onOpenChange={setIsSortOpen}>
-          <PopoverTrigger asChild>
+          <PopoverTrigger asChild disabled={isPending}>
             <Button
               variant="outline"
               size="lg"
               className="flex items-center gap-2"
             >
-              {activeSort.order === "asc" && <SortAscIcon />}
-              {activeSort.order === "desc" && <SortDescIcon />}
+              {(order || "desc") === "asc" ? <SortAscIcon /> : <SortDescIcon />}
               <span>{getSortButtonLabel()}</span>
             </Button>
           </PopoverTrigger>
@@ -559,13 +524,7 @@ export default function EventsFilters({
               >
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                onClick={applySort}
-                disabled={
-                  JSON.stringify(draftSort) === JSON.stringify(activeSort)
-                }
-              >
+              <Button size="sm" onClick={applySort} disabled={!hasSortChanges}>
                 Apply Sort
               </Button>
             </div>
@@ -573,15 +532,26 @@ export default function EventsFilters({
         </Popover>
       </div>
       <div className="w-full flex gap-5 md:justify-end row-start-3 md:row-start-1 col-start-1 md:col-start-3">
-        <Button asChild size="lg" variant="outline" className="w-fit">
-          <Link href="/admin/events?" className="flex items-center gap-2">
-            <RefreshCwIcon size={16} />
-            Refresh
-          </Link>
+        <Button
+          onClick={handleRefresh}
+          size="lg"
+          variant="outline"
+          className="w-fit flex items-center gap-2"
+          disabled={isPending}
+        >
+          <RefreshCwIcon size={16} />
+          Refresh
         </Button>
-        <Button size="lg" className="flex items-center gap-2 w-fit">
-          <Plus size={16} />
-          Create
+        <Button
+          asChild
+          size="lg"
+          className="flex items-center gap-2 w-fit"
+          disabled={isPending}
+        >
+          <Link href="/admin/events/create">
+            <Plus size={16} />
+            Create
+          </Link>
         </Button>
       </div>
     </div>

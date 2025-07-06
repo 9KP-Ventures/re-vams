@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -11,18 +10,18 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { GetEventsDataSuccess } from "@/lib/requests/events/get-many";
-import { ValidatedSearchParams } from "@/app/admin/events/page";
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEventsParams } from "@/lib/hooks/event-params";
 
 export default function EventsPagination({
   pagination,
-  params,
 }: {
   pagination?: GetEventsDataSuccess["pagination"] | undefined;
-  params: ValidatedSearchParams;
 }) {
-  const pathname = usePathname();
-  
+  // Use the events params hook
+  const { setPage } = useEventsParams();
+
   // Use a client-side effect to detect window size
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
@@ -31,13 +30,13 @@ export default function EventsPagination({
   useEffect(() => {
     setIsMounted(true);
     setWindowWidth(window.innerWidth);
-    
+
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // If less than 1 page, don't render pagination
@@ -60,7 +59,7 @@ export default function EventsPagination({
     if (isMounted && showMaxPages === 1) {
       return [currentPage];
     }
-    
+
     // Always show first and last page
     const firstPage = 1;
     const lastPage = totalPages;
@@ -108,6 +107,11 @@ export default function EventsPagination({
 
   const visiblePages = getVisiblePages(pagination.page, pagination.totalPages);
 
+  // Handle page changes
+  const handlePageChange = (page: number) => {
+    setPage(page.toString());
+  };
+
   // Render the standard pagination layout for server and initial client render
   // Then let the client-side JS update it based on screen size
   return (
@@ -122,15 +126,13 @@ export default function EventsPagination({
         {pagination.hasPrevPage && (
           <>
             {/* Show this on larger screens or during server render */}
-            <PaginationItem className={isMounted && windowWidth < 640 ? "hidden" : ""}>
+            <PaginationItem
+              className={isMounted && windowWidth < 640 ? "hidden" : ""}
+            >
               <PaginationPrevious
-                href={{
-                  pathname,
-                  query: {
-                    ...params,
-                    page: pagination.page > 1 ? pagination.page - 1 : 1,
-                  },
-                }}
+                href="#"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                className="cursor-pointer"
               />
             </PaginationItem>
 
@@ -138,16 +140,11 @@ export default function EventsPagination({
             {isMounted && windowWidth < 640 && (
               <PaginationItem>
                 <PaginationLink
-                  href={{
-                    pathname,
-                    query: {
-                      ...params,
-                      page: pagination.page > 1 ? pagination.page - 1 : 1,
-                    },
-                  }}
-                  className="px-2"
+                  href="#"
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  className="px-2 cursor-pointer"
                 >
-                  &lt;
+                  <ChevronLeft />
                 </PaginationLink>
               </PaginationItem>
             )}
@@ -158,7 +155,10 @@ export default function EventsPagination({
           // Handle ellipsis
           if (page === "ellipsis-start" || page === "ellipsis-end") {
             return (
-              <PaginationItem key={`ellipsis-${index}`} className={isMounted && windowWidth < 480 ? "hidden" : ""}>
+              <PaginationItem
+                key={`ellipsis-${index}`}
+                className={isMounted && windowWidth < 480 ? "hidden" : ""}
+              >
                 <PaginationEllipsis />
               </PaginationItem>
             );
@@ -168,15 +168,12 @@ export default function EventsPagination({
           return (
             <PaginationItem key={index}>
               <PaginationLink
-                href={{
-                  pathname,
-                  query: {
-                    ...params,
-                    page: page,
-                  },
-                }}
+                href="#"
+                onClick={() => handlePageChange(page as number)}
                 isActive={pagination.page === page}
-                className={isMounted && windowWidth < 480 ? "h-8 w-8 p-0" : ""}
+                className={`${
+                  isMounted && windowWidth < 480 ? "h-8 w-8 p-0" : ""
+                } cursor-pointer`}
               >
                 {page}
               </PaginationLink>
@@ -187,17 +184,13 @@ export default function EventsPagination({
         {pagination.hasNextPage && (
           <>
             {/* Show this on larger screens or during server render */}
-            <PaginationItem className={isMounted && windowWidth < 640 ? "hidden" : ""}>
+            <PaginationItem
+              className={isMounted && windowWidth < 640 ? "hidden" : ""}
+            >
               <PaginationNext
-                href={{
-                  pathname,
-                  query: {
-                    ...params,
-                    page: pagination.page < pagination.totalPages
-                      ? pagination.page + 1
-                      : pagination.totalPages,
-                  },
-                }}
+                href="#"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                className="cursor-pointer"
               />
             </PaginationItem>
 
@@ -205,18 +198,11 @@ export default function EventsPagination({
             {isMounted && windowWidth < 640 && (
               <PaginationItem>
                 <PaginationLink
-                  href={{
-                    pathname,
-                    query: {
-                      ...params,
-                      page: pagination.page < pagination.totalPages
-                        ? pagination.page + 1
-                        : pagination.totalPages,
-                    },
-                  }}
-                  className="px-2"
+                  href="#"
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  className="px-2 cursor-pointer"
                 >
-                  &gt;
+                  <ChevronRight />
                 </PaginationLink>
               </PaginationItem>
             )}

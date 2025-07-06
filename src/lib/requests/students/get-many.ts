@@ -6,6 +6,14 @@ import { GetStudentDataSuccess } from "./get+delete";
 // -----------------------------
 // Schema Definitions
 // -----------------------------
+export const GET_STUDENTS_SORT_OPTIONS = [
+  "id",
+  "first_name",
+  "last_name",
+  "year",
+  "created_at",
+] as const;
+export const GET_STUDENTS_SORT_ORDERS = ["asc", "desc"] as const;
 
 const getStudentsSchema = z.object({
   page: z.coerce.number().int().min(1),
@@ -14,8 +22,8 @@ const getStudentsSchema = z.object({
   program_id: z.coerce.number().int().min(1).optional(),
   degree_id: z.coerce.number().int().min(1).optional(),
   year_level_id: z.coerce.number().int().min(1).optional(),
-  sort_by: z.enum(["id", "first_name", "last_name", "year", "created_at"]),
-  sort_order: z.enum(["asc", "desc"]),
+  sort_by: z.enum(GET_STUDENTS_SORT_OPTIONS),
+  sort_order: z.enum(GET_STUDENTS_SORT_ORDERS),
 });
 
 export type GetStudentsData = z.infer<typeof getStudentsSchema>;
@@ -38,6 +46,11 @@ export type GetStudentsDataSuccess = {
 export type GetStudentsDataError = {
   error: { code: number; message: string };
 };
+
+// Note: For non-api response type variable names, do not use "Data" name, ex: GetStudentsData{success | error | request}
+// The types below are non-api response types, variable names will omit "Data"
+export type GetStudentsSortType = (typeof GET_STUDENTS_SORT_OPTIONS)[number];
+export type GetStudentsOrderType = (typeof GET_STUDENTS_SORT_ORDERS)[number];
 
 // -----------------------------
 // GetStudentsRequest Class
