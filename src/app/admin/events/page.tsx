@@ -2,13 +2,13 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import EventsError from "@/components/revams-admin/events/events-error";
-import EventsHeader from "@/components/revams-admin/events/events-header";
-import EventsFilters from "@/components/revams-admin/events/event-filters";
+import EventsError from "@/components/revams-admin/events/many-events/events-error";
+import EventsHeader from "@/components/revams-admin/events/many-events/events-header";
+import EventsFilters from "@/components/revams-admin/events/many-events/event-filters";
 import { Suspense } from "react";
-import EventsGridWrapper from "@/components/revams-admin/events/events-grid-wrapper";
-import EventsContentFallback from "@/components/revams-admin/events/events-content-fallback";
-import EventsStats from "@/components/revams-admin/events/event-stats";
+import EventsGridWrapper from "@/components/revams-admin/events/many-events/events-grid-wrapper";
+import EventsContentFallback from "@/components/revams-admin/events/many-events/events-content-fallback";
+import EventsStats from "@/components/revams-admin/events/many-events/event-stats";
 import { Constants } from "@/app/utils/supabase/types";
 import {
   GET_EVENTS_SORT_ORDERS,

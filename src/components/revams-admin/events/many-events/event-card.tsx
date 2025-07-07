@@ -5,14 +5,17 @@ import { CalendarIcon, ClockIcon, MoreHorizontal, School } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 export default function EventCard({
   event,
 }: {
   event: GetEventsDataSuccess["events"][0];
 }) {
+  const router = useRouter();
+
   return (
-    <li role="button">
+    <li role="button" onClick={() => router.push(`/admin/events/${event.id}`)}>
       <Card className="cursor-pointer p-0 overflow-hidden shadow-lg hover:shadow-sm transition-shadow">
         <CardContent className="p-8">
           <div className="flex gap-2 justify-between items-start mb-4">
@@ -32,7 +35,11 @@ export default function EventCard({
               >
                 {event.status}
               </Badge>
-              <button className="cursor-pointer text-foreground/60 hover:text-foreground/80">
+              <button
+                className="cursor-pointer text-foreground/60 hover:text-foreground/80"
+                aria-label="More options"
+                onClick={e => e.stopPropagation()}
+              >
                 <MoreHorizontal size={24} />
               </button>
             </div>
