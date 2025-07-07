@@ -144,11 +144,11 @@ export class GetStudentsRequest extends BaseRequest<GetStudentsData> {
     return this.validated().year_level_id;
   }
 
-  getSortBy(): string {
+  getSortBy(): GetStudentsSortType {
     return this.validated().sort_by;
   }
 
-  getSortOrder(): "asc" | "desc" {
+  getSortOrder(): GetStudentsOrderType {
     return this.validated().sort_order;
   }
 

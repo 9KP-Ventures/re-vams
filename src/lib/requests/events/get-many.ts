@@ -150,7 +150,7 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
     return this.validated().semester_id;
   }
 
-  getStatus(): string | undefined {
+  getStatus(): GetEventsStatusType | "" | undefined {
     return this.validated().status;
   }
 
@@ -162,11 +162,11 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
     return this.validated().date_to;
   }
 
-  getSortBy(): string {
+  getSortBy(): GetEventsSortType {
     return this.validated().sort_by;
   }
 
-  getSortOrder(): "asc" | "desc" {
+  getSortOrder(): GetEventsOrderType {
     return this.validated().sort_order;
   }
 

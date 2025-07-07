@@ -1,21 +1,29 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../../base-request";
-import { Tables } from "@/app/utils/supabase/types";
+import { Constants, Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
+export const GET_ATTENDANCE_SLOTS_SORT_OPTIONS = [
+  "id",
+  "trigger_time",
+  "type",
+  "fine_amount",
+  "created_at",
+] as const;
+export const GET_ATTENDANCE_SLOTS_SORT_ORDERS = ["asc", "desc"] as const;
 
 const getAttendanceSlotsSchema = z.object({
   event_id: z.coerce.number().int().min(1),
   page: z.coerce.number().int().min(1),
   limit: z.coerce.number().int().min(1).max(100),
-  type: z.enum(["TIME_IN", "TIME_OUT"]).optional(),
+  type: z.enum([...Constants.public.Enums.Attendance_Type, ""]).optional(),
   date_from: z.string().datetime().optional(),
   date_to: z.string().datetime().optional(),
-  sort_by: z.enum(["id", "trigger_time", "type", "fine_amount", "created_at"]),
-  sort_order: z.enum(["asc", "desc"]),
+  sort_by: z.enum(GET_ATTENDANCE_SLOTS_SORT_OPTIONS),
+  sort_order: z.enum(GET_ATTENDANCE_SLOTS_SORT_ORDERS),
 });
 
 export type GetAttendanceSlotsData = z.infer<typeof getAttendanceSlotsSchema>;
@@ -44,6 +52,14 @@ export type GetAttendanceSlotsDataSuccess = {
 export type GetAttendanceSlotsDataError = {
   error: { code: number; message: string };
 };
+
+// Non-api response types
+export type GetAttendanceSlotsSlotType =
+  (typeof Constants.public.Enums.Attendance_Type)[number];
+export type GetAttendanceSlotsSortType =
+  (typeof GET_ATTENDANCE_SLOTS_SORT_OPTIONS)[number];
+export type GetAttendanceSlotsOrderType =
+  (typeof GET_ATTENDANCE_SLOTS_SORT_ORDERS)[number];
 
 // -----------------------------
 // GetAttendanceSlotsRequest Class
@@ -133,7 +149,7 @@ export class GetAttendanceSlotsRequest extends BaseRequest<GetAttendanceSlotsDat
     return (this.getPage() - 1) * this.getLimit();
   }
 
-  getType(): "TIME_IN" | "TIME_OUT" | undefined {
+  getType(): GetAttendanceSlotsSlotType | "" | undefined {
     return this.validated().type;
   }
 
@@ -145,11 +161,11 @@ export class GetAttendanceSlotsRequest extends BaseRequest<GetAttendanceSlotsDat
     return this.validated().date_to;
   }
 
-  getSortBy(): string {
+  getSortBy(): GetAttendanceSlotsSortType {
     return this.validated().sort_by;
   }
 
-  getSortOrder(): "asc" | "desc" {
+  getSortOrder(): GetAttendanceSlotsOrderType {
     return this.validated().sort_order;
   }
 
