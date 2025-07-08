@@ -10,14 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import {
-  ChevronDown,
-  Shield,
-  TreePine,
-  Clock,
-  CheckCircle,
-  LucideIcon,
-} from "lucide-react";
+import { Shield, TreePine, Clock, CheckCircle, LucideIcon } from "lucide-react";
 import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
 
