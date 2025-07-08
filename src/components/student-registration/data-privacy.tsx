@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 import {
   ChevronDown,
   Shield,
@@ -30,6 +31,7 @@ type PrivacySectionProps = {
 export default function PrivacyNotice() {
   const router = useRouter();
 
+  // Track opened sections with an object
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [hasConsented, setHasConsented] = useState(false);
 
@@ -40,11 +42,11 @@ export default function PrivacyNotice() {
         title: "Data Collection",
         icon: TreePine,
         content: (
-          <div className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             We collect personal information such as name, email, and attendance
             data for the purpose of managing student records and improving our
             services.
-          </div>
+          </p>
         ),
       },
       {
@@ -52,10 +54,10 @@ export default function PrivacyNotice() {
         title: "Data Usage",
         icon: Clock,
         content: (
-          <div className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Your data will be used to track attendance, generate reports, and
             enhance the learning experience.
-          </div>
+          </p>
         ),
       },
       {
@@ -63,27 +65,31 @@ export default function PrivacyNotice() {
         title: "Your Rights",
         icon: CheckCircle,
         content: (
-          <div className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             You have the right to access, correct, and delete your personal
             information at any time.
-          </div>
+          </p>
         ),
       },
     ],
     []
   );
 
-  // Check if all sections have been opened
-  const allSectionsOpened = useMemo(
-    () => privacySections.every(section => openSections[section.id]),
-    [openSections, privacySections]
-  );
+  // Track if all sections are opened
+  const allSectionsOpened = useMemo(() => {
+    return privacySections.every(section => openSections[section.id]);
+  }, [openSections, privacySections]);
 
-  const toggleSection = (sectionId: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
+  // Handle Accordion value change
+  const handleAccordionChange = (value: string[]) => {
+    const newOpenSections = { ...openSections };
+
+    // Update each section based on whether it's in the value array
+    privacySections.forEach(section => {
+      newOpenSections[section.id] = value.includes(section.id);
+    });
+
+    setOpenSections(newOpenSections);
   };
 
   const handleAccept = () => {
@@ -140,52 +146,42 @@ export default function PrivacyNotice() {
               </div>
             </div>
 
-            {/* Collapsible Sections */}
+            {/* Accordion Sections (migrated from Collapsible) */}
             <div className="space-y-3">
-              {privacySections.map(section => (
-                <Collapsible
-                  key={section.id}
-                  open={openSections[section.id]}
-                  onOpenChange={() => toggleSection(section.id)}
-                >
-                  <CollapsibleTrigger
-                    className={`cursor-pointer flex items-center justify-between w-full p-3 rounded-lg transition-colors ${
-                      openSections[section.id]
-                        ? "bg-gradient-to-r from-primary/75 to-primary shadow-sm"
-                        : "bg-background hover:bg-primary/30"
-                    }`}
+              <Accordion
+                type="multiple"
+                className="w-full"
+                value={Object.keys(openSections).filter(
+                  key => openSections[key]
+                )}
+                onValueChange={handleAccordionChange}
+              >
+                {privacySections.map(section => (
+                  <AccordionItem
+                    key={section.id}
+                    value={section.id}
+                    className="border-0 mb-3"
                   >
-                    <div className="flex items-center space-x-2">
-                      <section.icon
-                        className={`w-4 h-4 ${
-                          openSections[section.id]
-                            ? "text-white"
-                            : "text-foreground"
-                        }`}
-                      />
-                      <span
-                        className={`text-sm font-medium ${
-                          openSections[section.id]
-                            ? "text-white"
-                            : "text-foreground"
-                        }`}
-                      >
-                        {section.title}
-                      </span>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
+                    <AccordionTrigger
+                      className={`p-3 rounded-lg transition-colors [&[data-state=open]>svg]:text-primary-foreground ${
                         openSections[section.id]
-                          ? "rotate-180 text-white"
-                          : "text-foreground"
+                          ? "bg-gradient-to-r from-primary/75 to-primary shadow-sm text-white"
+                          : "bg-background hover:bg-primary/30 text-foreground"
                       }`}
-                    />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="-mt-1 px-3 py-2 bg-muted rounded-b-md">
-                    {section.content}
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <section.icon className="w-4 h-4" />
+                        <span className="text-sm font-medium">
+                          {section.title}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 py-2 bg-muted rounded-b-md">
+                      {section.content}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
 
             {/* Consent Checkbox */}
