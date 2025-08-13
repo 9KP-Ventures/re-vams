@@ -117,7 +117,7 @@ export default function EventsFilters() {
   // Draft states for filters and sort
   const [draftFilters, setDraftFilters] = useState({
     status: status,
-    semesterId: semesterId || "",
+    semesterId: semesterId,
   });
 
   const [draftSort, setDraftSort] = useState({
@@ -140,7 +140,7 @@ export default function EventsFilters() {
     // Update draft filters
     setDraftFilters({
       status: status,
-      semesterId: semesterId || "",
+      semesterId: semesterId || null,
     });
 
     // Update draft sort
@@ -159,7 +159,7 @@ export default function EventsFilters() {
     if (isFilterOpen) {
       setDraftFilters({
         status: status,
-        semesterId: semesterId || "",
+        semesterId: semesterId || null,
       });
     }
   }, [isFilterOpen, status, semesterId]);
@@ -225,7 +225,7 @@ export default function EventsFilters() {
   // Apply all draft filters
   const applyFilters = () => {
     setStatus(draftFilters.status);
-    setSemesterId(draftFilters.semesterId || null);
+    setSemesterId(draftFilters.semesterId);
     setIsFilterOpen(false);
   };
 
@@ -233,7 +233,7 @@ export default function EventsFilters() {
   const clearDraftFilters = () => {
     setDraftFilters({
       status: null,
-      semesterId: "",
+      semesterId: null,
     });
   };
 
@@ -342,7 +342,6 @@ export default function EventsFilters() {
               {/* Status Filter Group */}
               <FilterGroup
                 title="Status"
-                activeFilter={draftFilters.status ?? ""}
                 badgeCount={draftFilters.status ? 1 : 0}
               >
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -371,7 +370,6 @@ export default function EventsFilters() {
               {/* Semester Filter Group */}
               <FilterGroup
                 title="Semester"
-                activeFilter={draftFilters.semesterId}
                 badgeCount={draftFilters.semesterId ? 1 : 0}
               >
                 <div className="mt-2 max-h-48 overflow-y-auto pr-1">
@@ -383,7 +381,7 @@ export default function EventsFilters() {
                           className={`
                             flex justify-between items-center w-full px-3 py-1.5 rounded-md text-sm cursor-pointer
                             ${
-                              draftFilters.semesterId === semester.id.toString()
+                              draftFilters.semesterId === semester.id
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "bg-background hover:bg-accent text-foreground"
                             }
@@ -398,8 +396,7 @@ export default function EventsFilters() {
                           <span className="capitalize">
                             {semester.name || ""}
                           </span>
-                          {draftFilters.semesterId ===
-                            semester.id.toString() && (
+                          {draftFilters.semesterId === semester.id && (
                             <Check size={14} className="ml-1 text-primary" />
                           )}
                         </div>

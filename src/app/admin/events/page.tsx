@@ -26,7 +26,7 @@ const eventSearchParamsSchema = z.object({
     .enum([...Constants.public.Enums.Status, ""] as const)
     .optional()
     .default(""),
-  semester_id: z.string().optional(),
+  semester_id: z.coerce.number().optional(),
 });
 
 // Type for validated search params

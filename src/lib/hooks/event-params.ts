@@ -1,5 +1,3 @@
-// Define constants from your types
-
 import { Constants } from "@/app/utils/supabase/types";
 import { useQueryState, useQueryStates } from "nuqs";
 import { useTransition } from "react";
@@ -11,13 +9,22 @@ import {
   GetEventsStatusType,
 } from "../requests/events/get-many";
 
+type DefaultParamsType = {
+  search: string;
+  status: GetEventsStatusType | null;
+  semester_id: number | null;
+  sort: GetEventsSortType;
+  order: GetEventsOrderType;
+  page: number | null;
+};
+
 // Centralize default values for easier management
-const DEFAULT_PARAMS = {
+const DEFAULT_PARAMS: DefaultParamsType = {
   search: "",
   status: null,
-  semester_id: "",
-  sort: null,
-  order: null,
+  semester_id: null,
+  sort: "date",
+  order: "desc",
   page: null,
 };
 
@@ -44,7 +51,12 @@ export function useEventsParams() {
         },
         semester_id: {
           defaultValue: DEFAULT_PARAMS.semester_id,
-          parse: value => value || DEFAULT_PARAMS.semester_id,
+          parse: value => {
+            const parsed = parseInt(value);
+            return !isNaN(parsed) && parsed > 0
+              ? parsed
+              : DEFAULT_PARAMS.semester_id;
+          },
         },
         sort: {
           defaultValue: DEFAULT_PARAMS.sort,
@@ -64,7 +76,7 @@ export function useEventsParams() {
           defaultValue: DEFAULT_PARAMS.page,
           parse: value => {
             const parsed = parseInt(value);
-            return !isNaN(parsed) && parsed > 0 ? value : DEFAULT_PARAMS.page;
+            return !isNaN(parsed) && parsed > 0 ? parsed : DEFAULT_PARAMS.page;
           },
         },
       },
@@ -80,7 +92,7 @@ export function useEventsParams() {
     setParams({ status: newStatus || DEFAULT_PARAMS.status, page: null });
   };
 
-  const setSemesterId = (newSemesterId: string | null) => {
+  const setSemesterId = (newSemesterId: number | null) => {
     setParams({
       semester_id: newSemesterId || DEFAULT_PARAMS.semester_id,
       page: null,
@@ -95,7 +107,7 @@ export function useEventsParams() {
     setParams({ order: newOrder });
   };
 
-  const setPage = (newPage: string) => {
+  const setPage = (newPage: number) => {
     setParams({ page: newPage });
   };
 
@@ -111,6 +123,10 @@ export function useEventsParams() {
 
   const setSearch = (newSearch: string | null) => {
     startTransition(() => {
+      setParams({
+        order: "asc",
+        sort: "name",
+      });
       setSearchParam(newSearch);
     });
   };

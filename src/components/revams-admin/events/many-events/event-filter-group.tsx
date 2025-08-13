@@ -7,7 +7,6 @@ export const FilterGroup = ({
 }: {
   title: string;
   children: React.ReactNode;
-  activeFilter?: string;
   badgeCount?: number;
 }) => (
   <div className="p-4">

@@ -109,7 +109,7 @@ export default function EventsPagination({
 
   // Handle page changes
   const handlePageChange = (page: number) => {
-    setPage(page.toString());
+    setPage(page);
   };
 
   // Render the standard pagination layout for server and initial client render
