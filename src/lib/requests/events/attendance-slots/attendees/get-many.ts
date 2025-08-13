@@ -38,7 +38,7 @@ export type SlotAttendee = Omit<Tables<"students">, "organization_id"> & {
 };
 
 export type GetSlotAttendeesDataSuccess = {
-  attendees: SlotAttendee[];
+  students: Tables<"students">[];
   pagination: {
     page: number;
     limit: number;
