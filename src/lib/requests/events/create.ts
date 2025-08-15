@@ -21,7 +21,7 @@ const createEventSchema = z
       .number()
       .int("Semester ID must be an integer")
       .min(1, "Semester ID is required"),
-    active: z.boolean(),
+    status: z.enum(["active", "inactive"]),
   })
   .passthrough();
 
@@ -167,8 +167,8 @@ export class CreateEventRequest extends FormRequest<CreateEventData> {
     return this.validated().semester_id;
   }
 
-  getActive(): boolean {
-    return this.validated().active;
+  getStatus(): string {
+    return this.validated().status;
   }
 
   getCustomEmailSubject(): string {
