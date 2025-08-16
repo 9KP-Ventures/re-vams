@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function StudentLookupSkeleton() {
   return (
-    <Card className="animate-pulse">
+    <Card className="animate-pulse py-4">
       <CardHeader className="border-b-1 relative">
-        <CardTitle className="pb-4">
+        <CardTitle>
           <div className="h-8 bg-muted rounded-lg w-40"></div>
         </CardTitle>
       </CardHeader>

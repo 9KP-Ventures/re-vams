@@ -11,7 +11,6 @@ import {
   InfoIcon,
   Loader2,
   Search,
-  ThumbsUp,
   User2,
 } from "lucide-react";
 import SearchForm from "./student-lookup-search-form";
@@ -134,9 +133,9 @@ const StudentDataDisplay = ({
           </div>
           <div className="flex flex-wrap gap-2">
             {studentFines.attendance_summary.attended_slots.length === 0 && (
-              <div className="w-full flex items-center justify-center py-2">
-                <div className="bg-muted/50 rounded-md px-3 py-2 text-muted-foreground text-xs flex items-center">
-                  <CheckCircle className="w-3.5 h-3.5 mr-1.5 opacity-60" />
+              <div className="w-full flex py-2">
+                <div className="bg-muted/50 rounded-md px-3 py-2 text-muted-foreground text-xs flex">
+                  <InfoIcon className="w-3.5 h-3.5 mr-1.5 opacity-60" />
                   <span>No time slots attended</span>
                 </div>
               </div>
@@ -165,9 +164,9 @@ const StudentDataDisplay = ({
           </div>
           <div className="flex flex-wrap gap-2">
             {studentFines.attendance_summary.missed_slots.length === 0 && (
-              <div className="w-full flex items-center justify-center py-2">
-                <div className="bg-muted/50 rounded-md px-3 py-2 text-accent-foreground/80 text-xs flex items-center">
-                  <ThumbsUp className="w-3.5 h-3.5 mr-1.5 opacity-60" />
+              <div className="w-full flex py-2">
+                <div className="bg-muted/50 rounded-md px-3 py-2 text-muted-foreground text-xs flex">
+                  <CheckCircle className="w-3.5 h-3.5 mr-1.5 opacity-60" />
                   <span>No time slots missed</span>
                 </div>
               </div>
@@ -305,10 +304,10 @@ export default function StudentLookup({
   }, [eventIsActive, event, studentId]);
 
   return (
-    <Card className={eventIsActive ? "" : "opacity-90 bg-muted/30"}>
+    <Card className={cn(eventIsActive ? "" : "opacity-90 bg-muted/30", "py-4")}>
       <CardHeader className="border-b-1 relative">
         <CardTitle
-          className={`text-2xl pb-4 ${
+          className={`text-2xl ${
             eventIsActive ? "text-primary" : "text-muted-foreground"
           }`}
         >
