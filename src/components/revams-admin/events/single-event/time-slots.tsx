@@ -3,14 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import TimeSlot from "./time-slot";
 import { GetAttendanceSlotsDataSuccess } from "@/lib/requests/events/attendance-slots/get-many";
+import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
 
-export default function TimeSlotClient({
+export default function TimeSlots({
   slots,
-  eventIsActive,
+  event,
 }: {
   slots: GetAttendanceSlotsDataSuccess["attendance_slots"];
-  eventIsActive: boolean;
+  event: GetEventDataSuccess["event"];
 }) {
+  const eventIsActive = event.status === "active";
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stripColors, setStripColors] = useState<
     Record<number, string | undefined>
@@ -18,14 +20,14 @@ export default function TimeSlotClient({
 
   // Memoize the hasTimePassed function to avoid recreating it on each render
   const hasTimePassed = useCallback(
-    (time: string): boolean => {
+    (date: Date, time: string): boolean => {
       // Parse the time string (expected format: "HH:MM:SS")
       const [hours, minutes, seconds] = time.split(":").map(Number);
 
-      const timeToCompare = new Date();
-      timeToCompare.setHours(hours, minutes, seconds || 0);
+      const dateTimeToCompare = new Date(date);
+      dateTimeToCompare.setHours(hours, minutes, seconds || 0);
 
-      return currentTime >= timeToCompare;
+      return currentTime >= dateTimeToCompare;
     },
     [currentTime]
   );
@@ -48,7 +50,7 @@ export default function TimeSlotClient({
     // Find the index of the latest passed time slot
     let latestPassedIndex = -1;
     for (let i = 0; i < sortedSlots.length; i++) {
-      if (hasTimePassed(sortedSlots[i].trigger_time)) {
+      if (hasTimePassed(new Date(event.date), sortedSlots[i].trigger_time)) {
         latestPassedIndex = i;
       } else {
         break; // Stop once we find a future time slot
@@ -60,7 +62,7 @@ export default function TimeSlotClient({
     }
 
     return null;
-  }, [slots, hasTimePassed]);
+  }, [event, slots, hasTimePassed]);
 
   // Memoize the updateStripColors function
   const updateStripColors = useCallback(() => {
@@ -74,7 +76,7 @@ export default function TimeSlotClient({
         return;
       }
 
-      const isPassed = hasTimePassed(slot.trigger_time);
+      const isPassed = hasTimePassed(new Date(event.date), slot.trigger_time);
 
       if (!isPassed) {
         newStripColors[slot.id] = undefined; // Default for unreached time slots
@@ -90,10 +92,11 @@ export default function TimeSlotClient({
 
     setStripColors(newStripColors);
   }, [
+    findLatestPassedTimeSlot,
     slots,
     eventIsActive,
     hasTimePassed,
-    findLatestPassedTimeSlot,
+    event.date,
     isLastTimeSlot,
   ]);
 

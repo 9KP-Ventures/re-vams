@@ -9,9 +9,17 @@ import {
   Edit,
   QrCode,
   Search,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useState } from "react";
+import StudentLookupMobile from "./student-lookup-mobile";
 
 export default function SingleEventHeader({
   event,
@@ -19,6 +27,7 @@ export default function SingleEventHeader({
   event: GetEventDataSuccess["event"];
 }) {
   const router = useRouter();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <div className="relative mt-8">
@@ -52,16 +61,62 @@ export default function SingleEventHeader({
           <h1 className="text-4xl font-extrabold capitalize overflow-wrap-normal break-words">
             {event.name}
           </h1>
+          <div aria-label="Event details" className="flex space-x-2">
+            <p>
+              {new Date(event.date).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
+            <p className="text-sm text-muted-foreground">&#124;</p>
+            <p className="capitalize">{event.semesters.name}</p>
+          </div>
           <div className="text-sm text-primary/50 dark:text-muted-foreground">
             Dashboard / Events / {event.id}
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="lg" className="flex lg:hidden">
-            <Search />
-            Search
-          </Button>
+          {/* Search Popover for mobile */}
+          <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="lg" className="flex lg:hidden">
+                <Search />
+                Search
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-screen p-0 -mt-8 max-w-[93vw] h-[75vh] overflow-auto lg:hidden"
+              align="start"
+              sideOffset={10}
+            >
+              <div className="sticky top-0 flex justify-between items-center p-4 bg-card border-b z-10">
+                <h3
+                  className={`font-bold text-lg ${
+                    event.status === "active"
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Student Search
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSearchOpen(false)}
+                >
+                  <X size={18} />
+                </Button>
+              </div>
+              <div className="p-4">
+                <StudentLookupMobile
+                  eventId={event.id}
+                  eventIsActive={event.status === "active"}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Button variant="outline" size="lg">
             <Edit />

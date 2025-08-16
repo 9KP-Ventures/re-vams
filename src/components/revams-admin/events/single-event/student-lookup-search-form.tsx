@@ -39,7 +39,7 @@ export default function SearchForm() {
   };
 
   return (
-    <div role="searchbox" className="relative mb-8">
+    <div role="searchbox" className="relative mb-4 lg:mb-8">
       <Input
         id="search"
         ref={searchInputRef}

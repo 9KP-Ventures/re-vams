@@ -3,15 +3,15 @@
 import { getAttendanceSlots } from "@/actions/attendance-slots";
 import AddTimeSlot from "./add-time-slot";
 import TimeSlots from "./time-slots";
+import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
 
 export default async function TimeSlotsWrapper({
-  eventId,
-  eventIsActive,
+  event,
 }: {
-  eventId: number;
-  eventIsActive: boolean;
+  event: GetEventDataSuccess["event"];
 }) {
-  const timeSlotsData = await getAttendanceSlots(eventId);
+  const eventIsActive = event.status === "active";
+  const timeSlotsData = await getAttendanceSlots(event.id);
   const maxTimeSlots = 6;
 
   if (!timeSlotsData) {
@@ -20,7 +20,7 @@ export default async function TimeSlotsWrapper({
 
   return (
     <>
-      <TimeSlots slots={timeSlotsData} eventIsActive={eventIsActive} />
+      <TimeSlots slots={timeSlotsData} event={event} />
 
       {timeSlotsData.length < maxTimeSlots && !eventIsActive && <AddTimeSlot />}
     </>
