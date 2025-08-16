@@ -32,21 +32,8 @@ export type FineBreakdown = {
 };
 
 export type GetStudentFinesDataSuccess = {
-  student: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    middle_name: string | null;
-    full_name: string;
-    program: string | null;
-    major: string | null;
-    degree: string | null;
-    year_level: string | null;
-  };
-  event: {
-    id: number;
-    name: string;
-  };
+  student: Tables<"students">;
+  event: Pick<Tables<"events">, "id" | "name">;
   attendance_summary: {
     total_slots: number;
     attended_count: number;

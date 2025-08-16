@@ -127,21 +127,8 @@ export async function GET(
 
     // Organize the response data
     const responseData = {
-      student: {
-        id: student.id,
-        first_name: student.first_name,
-        last_name: student.last_name,
-        middle_name: student.middle_name,
-        full_name: `${student.first_name} ${student.middle_name ? student.middle_name + ' ' : ''}${student.last_name}`,
-        program: student.programs?.name || null,
-        major: student.majors?.name || null,
-        degree: student.degrees?.name || null,
-        year_level: student.year_levels?.name || null,
-      },
-      event: {
-        id: event.id,
-        name: event.name,
-      },
+      student,
+      event,
       attendance_summary: {
         total_slots: attendanceSlots?.length || 0,
         attended_count: attendedSlots.length,
