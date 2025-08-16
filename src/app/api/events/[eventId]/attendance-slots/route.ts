@@ -6,10 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/events/[id]/attendance-slots - Get attendance slots for an event
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const { id } = await params;
-  const customRequest = new GetAttendanceSlotsRequest(request, id);
+  const { eventId } = await params;
+  const customRequest = new GetAttendanceSlotsRequest(request, eventId);
   const validationError = await customRequest.validate();
 
   if (validationError) {
@@ -131,10 +131,10 @@ export async function GET(
 // POST /api/events/[id]/attendance/slots - Create a new attendance slot
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const { id } = await params;
-  const customRequest = await new CreateAttendanceSlotRequest(request, id);
+  const { eventId } = await params;
+  const customRequest = await new CreateAttendanceSlotRequest(request, eventId);
   const validationError = await customRequest.validate();
 
   if (validationError) {

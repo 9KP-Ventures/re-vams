@@ -3,7 +3,7 @@ import { GetEventRequest } from "@/lib/requests/events/get+delete";
 import { UpdateEventRequest } from "@/lib/requests/events/update";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/events/[eventId] - Get a single event by ID
+// GET /api/events/[eventId] - Get a single event by ID with stats
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
@@ -51,6 +51,48 @@ export async function GET(
       );
     }
 
+    // Fetch event statistics in parallel
+    const [
+      attendanceSlotsResult,
+      attendanceRecordsResult,
+      feesResult
+    ] = await Promise.all([
+      // Get attendance slots count
+      supabase
+        .from("attendance_slots")
+        .select("id", { count: "exact" })
+        .eq("event_id", eventIdNum),
+
+      // Get unique attendees count
+      supabase
+        .from("attendance_records")
+        .select("student_id", { count: "exact" })
+        .eq("event_id", eventIdNum),
+
+      // Get fine amount from one attendance slot (all slots have same fine amount)
+      supabase
+        .from("attendance_slots")
+        .select("fine_amount")
+        .eq("event_id", eventIdNum)
+        .limit(1)
+        .single()
+    ]);
+
+    // Calculate stats
+    const timeSlots = attendanceSlotsResult.count || 0;
+    const totalAttendees = attendanceRecordsResult.count || 0;
+    
+    // Get fine amount from one slot (all slots have the same fine amount)
+    const fees = feesResult.data?.fine_amount || 0;
+
+    // Format stats similar to your UI
+    const stats = {
+      date: event.date,
+      time_slots: timeSlots,
+      fees: fees,
+      total_attendees: totalAttendees
+    };
+
     return NextResponse.json(
       {
         event: Object.fromEntries(
@@ -58,6 +100,7 @@ export async function GET(
             keyA.localeCompare(keyB)
           )
         ),
+        stats
       },
       { status: 200 }
     );
@@ -167,10 +210,9 @@ export async function PATCH(
           name
         ),
         semesters!semester_id(
-            id,
-            name
-          )
-
+          id,
+          name
+        )
       `
       )
       .single();
