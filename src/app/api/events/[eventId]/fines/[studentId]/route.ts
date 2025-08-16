@@ -161,7 +161,6 @@ export async function GET(
       },
       fines: {
         total_amount: totalFines,
-        currency: "PHP", // Assuming Philippine Peso based on your frontend
         breakdown: missedSlots.map(slot => ({
           slot_id: slot.id,
           trigger_time: slot.trigger_time,
