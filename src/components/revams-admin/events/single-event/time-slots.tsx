@@ -83,12 +83,11 @@ export default async function TimeSlots({
 
   return (
     <>
-      {timeSlotsData.map((slot, index) => {
+      {timeSlotsData.map(slot => {
         return (
           <TimeSlot
             key={slot.id}
             data={slot}
-            index={index + 1}
             stripColor={getStripColor(slot)}
           />
         );

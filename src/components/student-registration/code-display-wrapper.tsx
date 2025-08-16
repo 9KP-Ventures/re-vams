@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchStudentData } from "@/actions/student";
+import { getStudentData } from "@/actions/student";
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -28,7 +28,7 @@ export default async function CodePageWithData({
   }
 
   // Fetch student data
-  const studentData = await fetchStudentData(studentId);
+  const studentData = await getStudentData(studentId);
 
   if (studentData === null) {
     redirect(`/students/register/code/${studentId}?error=true`);

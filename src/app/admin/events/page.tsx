@@ -64,10 +64,7 @@ export default async function EventsViewPage({
     <>
       <EventsHeader />
       <EventsStats />
-      <div
-        className="flex flex-col flex-grow min-h-[595px]"
-        key={Math.random()}
-      >
+      <div className="flex flex-col flex-grow" key={Math.random()}>
         <EventsFilters />
         <Suspense fallback={<EventsContentFallback />}>
           <EventsGridWrapper params={validatedParams} />

@@ -13,7 +13,7 @@ export type StudentWithCode = GetStudentDataSuccess["student"] & {
   code: string;
 };
 
-export async function fetchStudentData(
+export async function getStudentData(
   id: string
 ): Promise<StudentWithCode | null> {
   try {

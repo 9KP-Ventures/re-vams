@@ -2,9 +2,10 @@
 
 import { getEventData } from "@/actions/event";
 import SingleEventHeader from "@/components/revams-admin/events/single-event/event-header-and-stats";
-import StudentLookup from "@/components/revams-admin/events/single-event/student-lookup";
-import TimeSlots from "@/components/revams-admin/events/single-event/time-slots";
+import MainEventViewPage from "@/components/revams-admin/events/single-event/event-view";
+import MainEventViewPageSkeleton from "@/components/revams-admin/events/single-event/event-view-skeleton";
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import z from "zod";
 
 const singleEventSearchParamsSchema = z.object({
@@ -51,26 +52,9 @@ export default async function SingleEventViewPage({
       <SingleEventHeader event={event} />
 
       {!validatedParams.time_slot && (
-        <>
-          {/* Time slots and student look-up section */}
-          <div className="flex gap-2 mt-12">
-            {/* Time slots */}
-            <div className="w-1/2 pr-16 space-y-5">
-              <TimeSlots
-                eventId={Number(id)}
-                eventIsActive={event.status === "active"}
-              />
-            </div>
-
-            {/* Student look-up */}
-            <div className="hidden sm:block w-1/2 h-full flex-grow">
-              <StudentLookup
-                eventIsActive={event.status === "active"}
-                studentId={validatedParams.student_id}
-              />
-            </div>
-          </div>
-        </>
+        <Suspense fallback={<MainEventViewPageSkeleton />}>
+          <MainEventViewPage event={event} />
+        </Suspense>
       )}
 
       {/* For the time slot contents */}

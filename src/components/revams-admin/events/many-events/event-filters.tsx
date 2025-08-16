@@ -306,7 +306,7 @@ export default function EventsFilters() {
             <Button
               variant="outline"
               size="lg"
-              className="flex items-center gap-2 min-w-[103px] relative"
+              className="flex items-center w-28 relative"
             >
               <FilterIcon size={16} />
               <span>Filters</span>
@@ -542,7 +542,7 @@ export default function EventsFilters() {
           onClick={handleRefresh}
           size="lg"
           variant="outline"
-          className="w-fit flex items-center gap-2"
+          className="w-28 flex items-center gap-2"
           disabled={isPending}
         >
           <RefreshCwIcon size={16} />
@@ -551,7 +551,7 @@ export default function EventsFilters() {
         <Button
           asChild
           size="lg"
-          className="flex items-center gap-2 w-fit"
+          className="flex items-center gap-2"
           disabled={isPending}
         >
           <Link href="/admin/events/create">

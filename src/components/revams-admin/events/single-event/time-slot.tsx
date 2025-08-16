@@ -8,11 +8,9 @@ import { cn, formatAmount, formatTime } from "@/lib/utils";
 import { Clock } from "lucide-react";
 
 export default function TimeSlot({
-  index,
   data,
   stripColor,
 }: {
-  index: number;
   data: GetAttendanceSlotsDataSuccess["attendance_slots"][0];
   stripColor?: string;
 }) {
@@ -23,34 +21,36 @@ export default function TimeSlot({
 
   return (
     <Card
-      className="py-3 overflow-hidden relative hover:scale-[1.02] cursor-pointer transition-transform duration-200"
+      className="py-4 sm:py-7 overflow-hidden relative hover:scale-[1.02] cursor-pointer transition-transform duration-200"
       onClick={() => setTimeSlot(data.id)}
     >
       {/* Notch strip */}
       <div
         className={cn(
-          "absolute right-0 top-0 w-8 h-full bg-muted rounded-r-md",
+          "absolute right-0 top-0 w-4 sm:w-8 h-full bg-muted rounded-r-md",
           stripColor
         )}
       ></div>
 
-      <CardContent className="flex gap-8">
+      <CardContent className="pl-3 pr-6 sm:px-6 flex gap-4 md:gap-8">
         <div className="dark:bg-secondary/40 bg-secondary/15 h-fit p-2 rounded-md flex self-center">
-          <Clock className="w-8 h-8" />
+          <Clock className="w-4 h-4 md:w-8 md:h-8" />
         </div>
-        <div className="flex flex-col w-[70%]">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-xl">
+        <div className="flex flex-col w-full min-[400px]:w-[65%] sm:w-[70%] lg:w-[50%] xl:w-[60%] 2xl:w-[70%]">
+          <div className="flex items-center justify-between min-[400px]:justify-normal gap-4">
+            <span className="font-bold text-base sm:text-xl">
               {formatTime(data.trigger_time)}
             </span>
-            <Badge className={slotColor}>{slotType}</Badge>
+            <Badge className={cn(slotColor, "mr-2 min-[400px]:mr-0")}>
+              {slotType}
+            </Badge>
           </div>
-          <span className="text-muted-foreground">
+          <span className="text-muted-foreground text-sm sm:text-base">
             {formatAmount(data.fine_amount)}
           </span>
         </div>
-        <span className="self-center text-2xl font-bold tracking-wide text-muted-foreground">
-          # {index}
+        <span className="hidden min-[400px]:block self-center text-2xl font-bold tracking-wide text-muted-foreground">
+          # {data.id}
         </span>
       </CardContent>
     </Card>

@@ -40,16 +40,19 @@ export async function GET(
     // Verify that the student exists
     const { data: student, error: studentError } = await supabase
       .from("students")
-      .select(`
+      .select(
+        `
         id,
         first_name,
         last_name,
         middle_name,
+        email_address,
         programs!program_id(id, name),
         majors!major_id(id, name),
         degrees!degree_id(id, name),
         year_levels!year_level_id(id, name)
-      `)
+      `
+      )
       .eq("id", customRequest.getStudentId())
       .single();
 
@@ -68,12 +71,14 @@ export async function GET(
     // Get all attendance slots for the event
     const { data: attendanceSlots, error: slotsError } = await supabase
       .from("attendance_slots")
-      .select(`
+      .select(
+        `
         id,
         trigger_time,
         type,
         fine_amount
-      `)
+      `
+      )
       .eq("event_id", customRequest.getEventId())
       .order("trigger_time", { ascending: true });
 
@@ -93,13 +98,15 @@ export async function GET(
     // Get all attendance records for this student and event
     const { data: attendanceRecords, error: recordsError } = await supabase
       .from("attendance_records")
-      .select(`
+      .select(
+        `
         id,
         slot_id,
         attendance_type,
         recorded_time,
         created_at
-      `)
+      `
+      )
       .eq("student_id", student.id)
       .in("slot_id", attendanceSlots?.map(slot => slot.id) || []);
 
@@ -117,13 +124,20 @@ export async function GET(
     }
 
     // Create a set of attended slot IDs for quick lookup
-    const attendedSlotIds = new Set(attendanceRecords?.map(record => record.slot_id) || []);
+    const attendedSlotIds = new Set(
+      attendanceRecords?.map(record => record.slot_id) || []
+    );
 
     // Calculate missed slots and total fines
-    const missedSlots = attendanceSlots?.filter(slot => !attendedSlotIds.has(slot.id)) || [];
-    const attendedSlots = attendanceSlots?.filter(slot => attendedSlotIds.has(slot.id)) || [];
-    
-    const totalFines = missedSlots.reduce((total, slot) => total + slot.fine_amount, 0);
+    const missedSlots =
+      attendanceSlots?.filter(slot => !attendedSlotIds.has(slot.id)) || [];
+    const attendedSlots =
+      attendanceSlots?.filter(slot => attendedSlotIds.has(slot.id)) || [];
+
+    const totalFines = missedSlots.reduce(
+      (total, slot) => total + slot.fine_amount,
+      0
+    );
 
     // Organize the response data
     const responseData = {
@@ -153,13 +167,14 @@ export async function GET(
           trigger_time: slot.trigger_time,
           type: slot.type,
           fine_amount: slot.fine_amount,
-          reason: `Missed ${slot.type.toLowerCase().replace('_', ' ')} at ${slot.trigger_time}`,
+          reason: `Missed ${slot.type.toLowerCase().replace("_", " ")} at ${
+            slot.trigger_time
+          }`,
         })),
       },
     };
 
     return NextResponse.json(responseData, { status: 200 });
-
   } catch (e) {
     console.error("Route error:", e);
     return NextResponse.json(

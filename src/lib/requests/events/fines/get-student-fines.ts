@@ -32,7 +32,15 @@ export type FineBreakdown = {
 };
 
 export type GetStudentFinesDataSuccess = {
-  student: Tables<"students">;
+  student: Omit<
+    Tables<"students">,
+    "program_id" | "year_level_id" | "major_id" | "degree_id"
+  > & {
+    degrees: Tables<"degrees">;
+    programs: Tables<"programs">;
+    year_levels: Tables<"year_levels">;
+    majors: Tables<"majors">;
+  };
   event: Pick<Tables<"events">, "id" | "name">;
   attendance_summary: {
     total_slots: number;

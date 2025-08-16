@@ -39,7 +39,7 @@ export default function SearchForm() {
   };
 
   return (
-    <div role="searchbox" className="relative mb-6">
+    <div role="searchbox" className="relative mb-8">
       <Input
         id="search"
         ref={searchInputRef}
@@ -49,7 +49,7 @@ export default function SearchForm() {
         onBlur={handleSearchBlur}
         onKeyDown={handleSearchKeyDown}
         placeholder={`${new Date().getFullYear().toString().slice(2)}-1-#####`}
-        className="w-full h-10 px-9 font-mono tracking-wide"
+        className="w-full h-12 px-9 font-mono tracking-wide"
         disabled={isPending}
       />
       <span

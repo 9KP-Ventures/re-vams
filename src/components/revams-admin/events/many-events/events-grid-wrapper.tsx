@@ -18,7 +18,7 @@ export default async function EventsGridWrapper({
   }
 
   return (
-    <div className="flex-grow flex flex-col justify-between gap-8">
+    <div className="flex flex-col justify-between gap-6">
       <EventsGrid events={eventsData.events} />
       <EventsPagination pagination={eventsData.pagination} />
     </div>
