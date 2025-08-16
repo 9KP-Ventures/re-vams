@@ -128,7 +128,7 @@ export async function GET(
   }
 }
 
-// POST /api/events/[id]/attendance/slots - Create a new attendance slot
+// POST /api/events/[id]/attendance-slots - Create a new attendance slot
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
