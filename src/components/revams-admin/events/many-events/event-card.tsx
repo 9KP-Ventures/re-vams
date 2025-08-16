@@ -16,7 +16,7 @@ export default function EventCard({
 
   return (
     <li role="button" onClick={() => router.push(`/admin/events/${event.id}`)}>
-      <Card className="cursor-pointer p-0 overflow-hidden shadow-lg hover:shadow-sm transition-shadow">
+      <Card className="cursor-pointer p-0 overflow-hidden shadow-lg hover:shadow-sm dark:hover:border-primary transition-[shadow,border]">
         <CardContent className="p-8">
           <div className="flex gap-2 justify-between items-start mb-4">
             <h3 className="font-semibold text-primary dark:text-foreground truncate">

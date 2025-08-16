@@ -1,22 +1,15 @@
 "use server";
 
-import { ValidatedSearchParams } from "@/app/admin/events/page";
+import { ValidatedEventsParams } from "@/app/admin/events/page";
 import { getServerOrigin } from "@/app/utils/server";
 import {
   GetEventsDataSuccess,
   GetEventsDataError,
 } from "@/lib/requests/events/get-many";
-
-type ParamValue = string | number | boolean;
-type TransformFunction = (value: ParamValue) => string;
-interface ParamConfig {
-  apiKey: string;
-  default?: ParamValue;
-  transform?: TransformFunction;
-}
+import { ParamConfig, ParamValue, TransformFunction } from "./types";
 
 export async function getEvents(
-  params?: ValidatedSearchParams
+  params?: ValidatedEventsParams
 ): Promise<GetEventsDataSuccess | null> {
   try {
     const origin = await getServerOrigin();
@@ -39,7 +32,7 @@ export async function getEvents(
     const queryParams = Object.entries(paramConfig).reduce(
       (urlParams, [key, config]) => {
         // Use explicit typing for the key to ensure type safety
-        const typedKey = key as keyof ValidatedSearchParams;
+        const typedKey = key as keyof ValidatedEventsParams;
         const rawValue = params?.[typedKey] ?? config.default;
 
         if (rawValue !== undefined) {

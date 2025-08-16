@@ -30,7 +30,7 @@ const eventSearchParamsSchema = z.object({
 });
 
 // Type for validated search params
-export type ValidatedSearchParams = z.infer<typeof eventSearchParamsSchema>;
+export type ValidatedEventsParams = z.infer<typeof eventSearchParamsSchema>;
 
 export default async function EventsViewPage({
   searchParams,
@@ -46,7 +46,7 @@ export default async function EventsViewPage({
   }
 
   // Extract validated params using the defined type
-  const validatedParams: ValidatedSearchParams = result.data;
+  const validatedParams: ValidatedEventsParams = result.data;
 
   // Handle explicit error param
   if (validatedParams.error) {

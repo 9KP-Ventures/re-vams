@@ -6,7 +6,7 @@ export default function StatCard({
   value,
 }: {
   icon: React.ReactNode;
-  label: string;
+  label?: string;
   value: string | number;
 }) {
   return (

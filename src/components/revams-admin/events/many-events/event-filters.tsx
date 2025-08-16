@@ -36,6 +36,7 @@ import {
   GetEventsSortType,
   GetEventsOrderType,
 } from "@/lib/requests/events/get-many";
+import { cn } from "@/lib/utils";
 
 interface StatusOption {
   value: GetEventsStatusType;
@@ -276,7 +277,14 @@ export default function EventsFilters() {
           className="w-full h-10 px-9"
           disabled={isPending}
         />
-        <span className="cursor-pointer absolute left-3 top-1/2 transform -translate-y-1/2">
+        <span
+          className={cn(
+            isPending
+              ? "text-muted-foreground cursor-default"
+              : "text-primary cursor-pointer",
+            "absolute left-3 top-1/2 transform -translate-y-1/2"
+          )}
+        >
           <Search size={18} />
         </span>
         {searchValue.length > 0 && (
@@ -285,6 +293,7 @@ export default function EventsFilters() {
             aria-label="Clear search"
             className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
             onClick={handleSearchClear}
+            disabled={isPending}
           >
             <X size={18} />
           </button>

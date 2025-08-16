@@ -56,3 +56,24 @@ export function capitalizeName(name: string): string {
     })
     .join(" ");
 }
+
+// Refer to supabase time string format
+// formats 24-hour format to 12-hour format with meridian
+// ignores the `seconds` component
+export function formatTime(time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+
+  // Convert to 12-hour format
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+
+  // Format with leading zeros for minutes
+  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+}
+
+export function formatAmount(amount: number) {
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(amount);
+}

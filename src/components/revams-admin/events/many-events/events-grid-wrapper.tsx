@@ -3,13 +3,13 @@
 import { getEvents } from "@/actions/events";
 import EventsGrid from "./events-grid";
 import NoEvents from "./no-events";
-import { ValidatedSearchParams } from "@/app/admin/events/page";
+import { ValidatedEventsParams } from "@/app/admin/events/page";
 import EventsPagination from "./event-pagination";
 
 export default async function EventsGridWrapper({
   params,
 }: {
-  params: ValidatedSearchParams;
+  params: ValidatedEventsParams;
 }) {
   const eventsData = await getEvents(params);
 

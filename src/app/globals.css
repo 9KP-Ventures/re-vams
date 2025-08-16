@@ -168,3 +168,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .border-dashed-custom {
+    --dashed-border-color: var(--border); /* Default to theme border color */
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--dashed-border-color),
+        var(--dashed-border-color) 12px,
+        transparent 12px,
+        transparent 18px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        var(--dashed-border-color),
+        var(--dashed-border-color) 12px,
+        transparent 12px,
+        transparent 18px
+      ),
+      repeating-linear-gradient(
+        to right,
+        var(--dashed-border-color),
+        var(--dashed-border-color) 12px,
+        transparent 12px,
+        transparent 18px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        var(--dashed-border-color),
+        var(--dashed-border-color) 12px,
+        transparent 12px,
+        transparent 18px
+      );
+    background-position: 0 0, 0 0, 0 100%, 100% 0;
+    background-size: 100% 1px, 1px 100%, 100% 1px, 1px 100%;
+    background-repeat: no-repeat;
+    border: 0;
+  }
+}

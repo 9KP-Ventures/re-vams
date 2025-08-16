@@ -9,7 +9,9 @@ import {
   GetStudentDataSuccess,
 } from "@/lib/requests/students/get+delete";
 
-type StudentWithCode = GetStudentDataSuccess["student"] & { code: string };
+export type StudentWithCode = GetStudentDataSuccess["student"] & {
+  code: string;
+};
 
 export async function fetchStudentData(
   id: string
