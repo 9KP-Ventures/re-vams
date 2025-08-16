@@ -1,5 +1,6 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { GetSlotAttendeesRequest } from "@/lib/requests/events/attendance-slots/attendees/get-many";
+import { CreateAttendeeRequest } from "@/lib/requests/events/attendance-slots/attendees/create";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/events/[eventId]/attendance-slots/[slotId]/attendees - Get attendees for a specific attendance slot
@@ -53,15 +54,21 @@ export async function GET(
           last_name,
           middle_name,
           email_address,
-          program_id,
-          degree_id,
+          program:program_id(
+            name
+          ),
+          degree:degree_id(
+            name
+          ),
           major_id,
-          year_level_id,
+          year_level:year_level_id(
+            name
+          ),
           created_at
         )
       `
       )
-      .eq("event_id", customRequest.getEventId())
+      .eq("slot_id", customRequest.getSlotId())
       .eq("attendance_type", attendanceSlot.type)
       .range(
         customRequest.getOffset(),
@@ -105,7 +112,7 @@ export async function GET(
     let countQuery = supabase
       .from("attendance_records")
       .select("students!attendance_records_student_id_fkey(id)", { count: "exact", head: true })
-      .eq("event_id", customRequest.getEventId())
+      .eq("slot_id", customRequest.getSlotId())
       .eq("attendance_type", attendanceSlot.type);
 
     // Apply same search filter for count
@@ -171,6 +178,127 @@ export async function GET(
         },
       },
       { status: 200 }
+    );
+  } catch (e) {
+    console.error("Route error:", e);
+    return NextResponse.json(
+      {
+        error: {
+          code: 500,
+          message: (e as Error).message || "Unknown error",
+        },
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ eventId: string; slotId: string }> }
+) {
+  const { eventId, slotId } = await params;
+  const customRequest = new CreateAttendeeRequest(request, eventId, slotId);
+  const validationError = await customRequest.validate();
+
+  if (validationError) {
+    return validationError;
+  }
+
+  try {
+    const supabase = await createClient();
+
+    // Verify attendance slot exists and belongs to the event
+    const { data: attendanceSlot, error: slotError } = await supabase
+      .from("attendance_slots")
+      .select("id, event_id, type")
+      .eq("id", customRequest.getSlotId())
+      .eq("event_id", customRequest.getEventId())
+      .single();
+
+    if (slotError || !attendanceSlot) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 404,
+            message: `Attendance slot with ID '${customRequest.getSlotId()}' not found for event '${customRequest.getEventId()}'.`,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    // Verify student exists
+    const attendanceData = customRequest.getAttendanceRecordData();
+    const { data: student, error: studentError } = await supabase
+      .from("students")
+      .select("id, first_name, last_name")
+      .eq("id", attendanceData.student_id)
+      .single();
+
+    if (studentError || !student) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 404,
+            message: `Student with ID '${attendanceData.student_id}' not found.`,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check if attendance record already exists for this student, event, and type
+    const { data: existingRecord } = await supabase
+      .from("attendance_records")
+      .select("id")
+      .eq("student_id", attendanceData.student_id)
+      .eq("slot_id", attendanceData.slot_id)
+      .eq("attendance_type", attendanceData.attendance_type)
+      .single();
+
+    if (existingRecord) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 409,
+            message: `Attendance record already exists for student '${student.first_name} ${student.last_name}' for this event and attendance type.`,
+          },
+        },
+        { status: 409 }
+      );
+    }
+
+    // Create the attendance record
+    const { data: attendanceRecord, error: createError } = await supabase
+      .from("attendance_records")
+      .insert(attendanceData)
+      .select()
+      .single();
+
+    if (createError) {
+      console.error("Database error:", createError);
+      return NextResponse.json(
+        {
+          error: {
+            code: 400,
+            message: createError.message,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        attendance_record: Object.fromEntries(
+          Object.entries(attendanceRecord).sort(([keyA], [keyB]) =>
+            keyA.localeCompare(keyB)
+          )
+        ),
+        message: `Attendance record created successfully for student '${student.first_name} ${student.last_name}'.`,
+      },
+      { status: 201 }
     );
   } catch (e) {
     console.error("Route error:", e);
