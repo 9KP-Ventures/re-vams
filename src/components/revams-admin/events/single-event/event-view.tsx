@@ -1,5 +1,5 @@
 import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
-import TimeSlots from "./time-slots";
+import TimeSlots from "./time-slots-wrapper";
 import StudentLookup from "./student-lookup";
 
 export default function MainEventViewPage({

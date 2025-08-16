@@ -1,39 +1,47 @@
-"use server";
+"use client";
 
-import { getAttendanceSlots } from "@/actions/attendance-slots";
-import AddTimeSlot from "./add-time-slot";
+import { useCallback, useEffect, useState } from "react";
 import TimeSlot from "./time-slot";
 import { GetAttendanceSlotsDataSuccess } from "@/lib/requests/events/attendance-slots/get-many";
 
-export default async function TimeSlots({
-  eventId,
+export default function TimeSlotClient({
+  slots,
   eventIsActive,
 }: {
-  eventId: number;
+  slots: GetAttendanceSlotsDataSuccess["attendance_slots"];
   eventIsActive: boolean;
 }) {
-  const timeSlotsData = await getAttendanceSlots(eventId);
-  const maxTimeSlots = 6;
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [stripColors, setStripColors] = useState<
+    Record<number, string | undefined>
+  >({});
 
-  if (!timeSlotsData) {
-    return <>Error fetching time slots</>;
-  }
+  // Memoize the hasTimePassed function to avoid recreating it on each render
+  const hasTimePassed = useCallback(
+    (time: string): boolean => {
+      // Parse the time string (expected format: "HH:MM:SS")
+      const [hours, minutes, seconds] = time.split(":").map(Number);
 
-  const hasTimePassed = (time: string): boolean => {
-    // Parse the time string (expected format: "HH:MM:SS")
-    const [hours, minutes, seconds] = time.split(":").map(Number);
+      const timeToCompare = new Date();
+      timeToCompare.setHours(hours, minutes, seconds || 0);
 
-    const now = new Date();
-    const timeToCompare = new Date();
-    timeToCompare.setHours(hours, minutes, seconds || 0);
+      return currentTime >= timeToCompare;
+    },
+    [currentTime]
+  );
 
-    return now >= timeToCompare;
-  };
+  // Memoize isLastTimeSlot function
+  const isLastTimeSlot = useCallback(
+    (slotId: number) => {
+      return slotId === slots[slots.length - 1]?.id;
+    },
+    [slots]
+  );
 
-  // Find the latest passed time slot
-  const findLatestPassedTimeSlot = () => {
+  // Memoize the findLatestPassedTimeSlot function
+  const findLatestPassedTimeSlot = useCallback(() => {
     // First, sort the slots by time
-    const sortedSlots = [...timeSlotsData].sort((a, b) => {
+    const sortedSlots = [...slots].sort((a, b) => {
       return a.trigger_time.localeCompare(b.trigger_time);
     });
 
@@ -52,48 +60,66 @@ export default async function TimeSlots({
     }
 
     return null;
-  };
+  }, [slots, hasTimePassed]);
 
-  const latestPassedTimeSlotId = findLatestPassedTimeSlot();
-  const isLastTimeSlot = (slotId: number) => {
-    return slotId === timeSlotsData[timeSlotsData.length - 1].id;
-  };
+  // Memoize the updateStripColors function
+  const updateStripColors = useCallback(() => {
+    const latestPassedTimeSlotId = findLatestPassedTimeSlot();
+    const newStripColors: Record<number, string | undefined> = {};
 
-  // Determine strip color for each time slot
-  const getStripColor = (
-    slot: GetAttendanceSlotsDataSuccess["attendance_slots"][0]
-  ) => {
-    // Default strip color for inactive event
-    if (!eventIsActive) {
-      return undefined;
-    }
+    slots.forEach(slot => {
+      // Default strip color for inactive event
+      if (!eventIsActive) {
+        newStripColors[slot.id] = undefined;
+        return;
+      }
 
-    const isPassed = hasTimePassed(slot.trigger_time);
+      const isPassed = hasTimePassed(slot.trigger_time);
 
-    if (!isPassed) {
-      return undefined; // Default for unreached time slots
-    }
+      if (!isPassed) {
+        newStripColors[slot.id] = undefined; // Default for unreached time slots
+      } else if (
+        slot.id === latestPassedTimeSlotId &&
+        !isLastTimeSlot(slot.id)
+      ) {
+        newStripColors[slot.id] = "bg-secondary"; // Latest passed time slot (but not the last one)
+      } else {
+        newStripColors[slot.id] = "bg-primary"; // Other passed time slots or last time slot
+      }
+    });
 
-    if (slot.id === latestPassedTimeSlotId && !isLastTimeSlot(slot.id)) {
-      return "bg-secondary"; // Latest passed time slot (but not the last one)
-    }
+    setStripColors(newStripColors);
+  }, [
+    slots,
+    eventIsActive,
+    hasTimePassed,
+    findLatestPassedTimeSlot,
+    isLastTimeSlot,
+  ]);
 
-    return "bg-primary"; // Other passed time slots or last time slot
-  };
+  // Update the current time every minute
+  useEffect(() => {
+    // Calculate initial strip colors
+    updateStripColors();
+
+    // Set up interval to update the current time every minute
+    const intervalId = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // 60000 milliseconds = 1 minute
+
+    return () => clearInterval(intervalId);
+  }, [updateStripColors]); // Add updateStripColors as a dependency
+
+  // Recalculate strip colors when currentTime changes
+  useEffect(() => {
+    updateStripColors();
+  }, [currentTime, updateStripColors]); // Add updateStripColors as a dependency
 
   return (
     <>
-      {timeSlotsData.map(slot => {
-        return (
-          <TimeSlot
-            key={slot.id}
-            data={slot}
-            stripColor={getStripColor(slot)}
-          />
-        );
-      })}
-
-      {timeSlotsData.length < maxTimeSlots && !eventIsActive && <AddTimeSlot />}
+      {slots.map(slot => (
+        <TimeSlot key={slot.id} data={slot} stripColor={stripColors[slot.id]} />
+      ))}
     </>
   );
 }
