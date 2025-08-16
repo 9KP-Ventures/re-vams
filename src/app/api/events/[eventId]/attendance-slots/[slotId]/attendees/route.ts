@@ -138,7 +138,7 @@ export async function GET(
         };
 
         return {
-          ...student,
+          student,
           attendance_record: attendanceRecord,
         };
       });
