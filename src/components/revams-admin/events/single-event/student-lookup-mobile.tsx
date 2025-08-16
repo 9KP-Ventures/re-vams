@@ -11,7 +11,6 @@ import {
   Search,
   User2,
   CheckCircle,
-  ThumbsUp,
 } from "lucide-react";
 import SearchForm from "./student-lookup-search-form";
 import { useEffect, useState } from "react";
@@ -127,11 +126,11 @@ const StudentDataDisplay = ({
             </div>
             <h3 className="font-bold text-base">Time Slots Attended</h3>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-1">
             {studentFines.attendance_summary.attended_slots.length === 0 ? (
               <div className="w-full flex items-center justify-center py-2">
                 <div className="bg-muted/50 rounded-md px-3 py-2 text-muted-foreground text-xs flex items-center">
-                  <CheckCircle className="w-3.5 h-3.5 mr-1.5 opacity-60" />
+                  <InfoIcon className="w-3.5 h-3.5 mr-1.5 opacity-60" />
                   <span>No time slots attended</span>
                 </div>
               </div>
@@ -155,11 +154,11 @@ const StudentDataDisplay = ({
             </div>
             <h3 className="font-bold text-base">Time Slots Missed</h3>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-1">
             {studentFines.attendance_summary.missed_slots.length === 0 ? (
               <div className="w-full flex items-center justify-center py-2">
-                <div className="bg-muted/50 rounded-md px-3 py-2 text-accent-foreground/80 text-xs flex items-center">
-                  <ThumbsUp className="w-3.5 h-3.5 mr-1.5 opacity-60" />
+                <div className="bg-muted/50 rounded-md px-3 py-2 text-muted-foreground text-xs flex items-center">
+                  <CheckCircle className="w-3.5 h-3.5 mr-1.5 opacity-60" />
                   <span>No time slots missed</span>
                 </div>
               </div>
