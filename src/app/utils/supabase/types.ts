@@ -362,7 +362,7 @@ export type Database = {
           created_at: string
           due_date: string
           id: number
-          is_paid: boolean
+          status: Database["public"]["Enums"]["Payment_Status"] | null
           student_id: string
           type: Database["public"]["Enums"]["Payable_Type"]
         }
@@ -371,7 +371,7 @@ export type Database = {
           created_at?: string
           due_date: string
           id?: number
-          is_paid?: boolean
+          status?: Database["public"]["Enums"]["Payment_Status"] | null
           student_id: string
           type: Database["public"]["Enums"]["Payable_Type"]
         }
@@ -380,7 +380,7 @@ export type Database = {
           created_at?: string
           due_date?: string
           id?: number
-          is_paid?: boolean
+          status?: Database["public"]["Enums"]["Payment_Status"] | null
           student_id?: string
           type?: Database["public"]["Enums"]["Payable_Type"]
         }
@@ -603,7 +603,8 @@ export type Database = {
     Enums: {
       Attendance_Type: "TIME_IN" | "TIME_OUT"
       Payable_Type: "fee" | "fine"
-      Status: "active" | "inactive"
+      Payment_Status: "pending" | "partially_paid" | "paid" | "overdue"
+      Status: "upcoming" | "on_going" | "completed"
       User_Roles: "admin" | "non_admin" | "student" | "super"
     }
     CompositeTypes: {
@@ -734,7 +735,8 @@ export const Constants = {
     Enums: {
       Attendance_Type: ["TIME_IN", "TIME_OUT"],
       Payable_Type: ["fee", "fine"],
-      Status: ["active", "inactive"],
+      Payment_Status: ["pending", "partially_paid", "paid", "overdue"],
+      Status: ["upcoming", "on_going", "completed"],
       User_Roles: ["admin", "non_admin", "student", "super"],
     },
   },
