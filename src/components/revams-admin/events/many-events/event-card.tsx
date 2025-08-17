@@ -26,14 +26,16 @@ export default function EventCard({
               <Badge
                 className={cn(
                   "capitalize text-xs rounded-full",
-                  event.status === "active"
-                    ? "text-accent-foreground bg-accent"
-                    : event.status === "inactive"
-                    ? "text-muted-foreground bg-muted"
+                  event.status === "on_going"
+                    ? "text-white bg-destructive"
+                    : event.status === "completed"
+                    ? "text-primary-foreground bg-primary"
+                    : event.status === "upcoming"
+                    ? "text-secondary-foreground bg-secondary"
                     : ""
                 )}
               >
-                {event.status}
+                {event.status.split("_").join(" ")}
               </Badge>
               <button
                 className="cursor-pointer text-foreground/60 hover:text-foreground/80"

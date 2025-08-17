@@ -44,8 +44,9 @@ interface StatusOption {
 }
 
 const STATUS_OPTIONS: StatusOption[] = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
+  { value: "upcoming", label: "Upcoming" },
+  { value: "on_going", label: "On Going" },
+  { value: "completed", label: "Completed" },
 ];
 
 interface SortOption {

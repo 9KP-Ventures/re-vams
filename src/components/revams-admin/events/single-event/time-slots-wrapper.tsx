@@ -10,7 +10,7 @@ export default async function TimeSlotsWrapper({
 }: {
   event: GetEventDataSuccess["event"];
 }) {
-  const eventIsActive = event.status === "active";
+  const disabled = event.status === "upcoming";
   const timeSlotsData = await getAttendanceSlots(event.id);
   const maxTimeSlots = 6;
 
@@ -22,7 +22,7 @@ export default async function TimeSlotsWrapper({
     <>
       <TimeSlots slots={timeSlotsData} event={event} />
 
-      {timeSlotsData.length < maxTimeSlots && !eventIsActive && <AddTimeSlot />}
+      {timeSlotsData.length < maxTimeSlots && disabled && <AddTimeSlot />}
     </>
   );
 }

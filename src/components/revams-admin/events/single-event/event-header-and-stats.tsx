@@ -44,15 +44,18 @@ export default function SingleEventHeader({
       {/* Event status */}
       <Badge
         variant="outline"
-        className="absolute -top-10 right-0 flex items-center gap-2 px-6 py-2 rounded-full"
+        className="absolute -top-10 right-0 flex items-center gap-2 px-6 py-2 rounded-full capitalize"
       >
-        {event.status === "active" && (
+        {event.status === "upcoming" && (
+          <Circle className="w-2 h-2 fill-secondary text-secondary" />
+        )}
+        {event.status === "on_going" && (
+          <Circle className="w-2 h-2 fill-destructive text-destructive" />
+        )}
+        {event.status === "completed" && (
           <Circle className="w-2 h-2 fill-primary text-primary" />
         )}
-        {event.status === "inactive" && (
-          <Circle className="w-2 h-2 fill-gray-400 text-gray-400" />
-        )}
-        {`${event.status.charAt(0).toUpperCase()}${event.status.slice(1)}`}
+        {event.status.split("_").join(" ")}
       </Badge>
 
       {/* Title and action buttons */}
@@ -94,9 +97,9 @@ export default function SingleEventHeader({
               <div className="sticky top-0 flex justify-between items-center p-4 bg-card border-b z-10">
                 <h3
                   className={`font-bold text-lg ${
-                    event.status === "active"
-                      ? "text-primary"
-                      : "text-muted-foreground"
+                    event.status === "upcoming"
+                      ? "text-muted-foreground"
+                      : "text-primary"
                   }`}
                 >
                   Student Search
@@ -112,13 +115,17 @@ export default function SingleEventHeader({
               <div className="p-4">
                 <StudentLookupMobile
                   eventId={event.id}
-                  eventIsActive={event.status === "active"}
+                  disabled={event.status === "upcoming"}
                 />
               </div>
             </PopoverContent>
           </Popover>
 
-          <Button variant="outline" size="lg">
+          <Button
+            variant="outline"
+            size="lg"
+            disabled={event.status !== "upcoming"}
+          >
             <Edit />
             Edit
           </Button>
@@ -126,7 +133,9 @@ export default function SingleEventHeader({
           <Button
             variant="outline"
             size="lg"
-            disabled={event.status === "inactive"}
+            disabled={
+              event.status === "upcoming" || event.status === "completed"
+            }
           >
             <QrCode />
             Show QR
@@ -135,7 +144,7 @@ export default function SingleEventHeader({
           <Button
             className="w-26"
             size="lg"
-            disabled={event.status === "inactive"}
+            disabled={event.status === "upcoming"}
           >
             <DownloadCloud />
             Export

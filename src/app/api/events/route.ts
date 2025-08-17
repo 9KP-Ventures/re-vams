@@ -61,7 +61,11 @@ export async function GET(request: NextRequest) {
     }
 
     const status = customRequest.getStatus();
-    if (status === "active" || status === "inactive") {
+    if (
+      status === "upcoming" ||
+      status === "on_going" ||
+      status === "completed"
+    ) {
       query = query.eq("status", status);
     }
 

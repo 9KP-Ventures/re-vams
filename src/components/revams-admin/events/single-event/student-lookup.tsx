@@ -280,7 +280,7 @@ export default function StudentLookup({
 }: {
   event: GetEventDataSuccess["event"];
 }) {
-  const eventIsActive = event.status === "active";
+  const disabled = event.status === "upcoming";
 
   const { studentId } = useSingleEventParams();
   const [studentFinesData, setStudentFinesData] =
@@ -290,7 +290,7 @@ export default function StudentLookup({
   // Only fetch student data if event is active and we have a student ID
   useEffect(() => {
     const fetchStudentData = async () => {
-      if (eventIsActive && studentId && studentId.trim() !== "") {
+      if (!disabled && studentId && studentId.trim() !== "") {
         setLoading(true);
         const data = await getStudentFines(event.id, studentId);
 
@@ -301,14 +301,14 @@ export default function StudentLookup({
       }
     };
     fetchStudentData();
-  }, [eventIsActive, event, studentId]);
+  }, [disabled, event, studentId]);
 
   return (
-    <Card className={cn(eventIsActive ? "" : "opacity-90 bg-muted/30", "py-4")}>
+    <Card className={cn(!disabled ? "" : "opacity-90 bg-muted/30", "py-4")}>
       <CardHeader className="border-b-1 relative">
         <CardTitle
           className={`text-2xl ${
-            eventIsActive ? "text-primary" : "text-muted-foreground"
+            !disabled ? "text-primary" : "text-muted-foreground"
           }`}
         >
           Search Student
@@ -317,7 +317,7 @@ export default function StudentLookup({
 
       <CardContent>
         {/* Content logic based on state */}
-        {!eventIsActive ? (
+        {disabled ? (
           // Event inactive state
           <InactiveState />
         ) : loading && studentId ? (

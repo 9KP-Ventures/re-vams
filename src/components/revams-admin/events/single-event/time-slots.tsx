@@ -12,7 +12,7 @@ export default function TimeSlots({
   slots: GetAttendanceSlotsDataSuccess["attendance_slots"];
   event: GetEventDataSuccess["event"];
 }) {
-  const eventIsActive = event.status === "active";
+  const disabled = event.status === "upcoming";
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stripColors, setStripColors] = useState<
     Record<number, string | undefined>
@@ -71,7 +71,7 @@ export default function TimeSlots({
 
     slots.forEach(slot => {
       // Default strip color for inactive event
-      if (!eventIsActive) {
+      if (disabled) {
         newStripColors[slot.id] = undefined;
         return;
       }
@@ -94,7 +94,7 @@ export default function TimeSlots({
   }, [
     findLatestPassedTimeSlot,
     slots,
-    eventIsActive,
+    disabled,
     hasTimePassed,
     event.date,
     isLastTimeSlot,

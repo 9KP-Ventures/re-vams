@@ -268,10 +268,10 @@ const LoadingState = () => (
 // Main component
 export default function StudentLookupMobile({
   eventId,
-  eventIsActive,
+  disabled,
 }: {
   eventId: number;
-  eventIsActive: boolean;
+  disabled: boolean;
 }) {
   const { studentId } = useSingleEventParams();
   const [studentFinesData, setStudentFinesData] =
@@ -281,7 +281,7 @@ export default function StudentLookupMobile({
   // Fetch student data
   useEffect(() => {
     const fetchStudentData = async () => {
-      if (eventIsActive && studentId && studentId.trim() !== "") {
+      if (!disabled && studentId && studentId.trim() !== "") {
         setLoading(true);
         const data = await getStudentFines(eventId, studentId);
 
@@ -292,10 +292,10 @@ export default function StudentLookupMobile({
       }
     };
     fetchStudentData();
-  }, [eventIsActive, eventId, studentId]);
+  }, [disabled, eventId, studentId]);
 
   // Render the appropriate UI based on state
-  if (!eventIsActive) {
+  if (disabled) {
     return <InactiveState />;
   }
 

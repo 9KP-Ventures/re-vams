@@ -2,6 +2,7 @@ import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { FormRequest } from "../base-request";
 import { GetEventDataSuccess } from "./get+delete";
+import { Constants } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -21,7 +22,7 @@ const createEventSchema = z
       .number()
       .int("Semester ID must be an integer")
       .min(1, "Semester ID is required"),
-    status: z.enum(["active", "inactive"]),
+    status: z.enum([...Constants.public.Enums.Status] as const),
   })
   .passthrough();
 
