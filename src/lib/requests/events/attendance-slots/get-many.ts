@@ -29,7 +29,7 @@ const getAttendanceSlotsSchema = z.object({
 export type GetAttendanceSlotsData = z.infer<typeof getAttendanceSlotsSchema>;
 export type GetAttendanceSlotsDataSuccess = {
   attendance_slots: Array<
-    Omit<Tables<"attendance_slots">, "created_at" & "updated_at" & "event_id">
+    Omit<Tables<"attendance_slots">, "created_at" | "updated_at" | "event_id">
   >;
   pagination: {
     page: number;

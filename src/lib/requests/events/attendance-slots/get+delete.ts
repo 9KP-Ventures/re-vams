@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../../base-request";
+import { Tables } from "@/app/utils/supabase/types";
 
 const getAttendanceSlotSchema = z.object({
   id: z.coerce.number().int().min(1),
@@ -9,7 +10,12 @@ const getAttendanceSlotSchema = z.object({
 
 export type GetAttendanceSlotData = z.infer<typeof getAttendanceSlotSchema>;
 export type GetAttendanceSlotDataSuccess = {
-  message: string;
+  attendance_slot: Omit<Tables<"attendance_slots">, "event_id"> & {
+    events: Pick<Tables<"events">, "id" | "date" | "name">;
+  };
+  statistics: {
+    total_attendees: number;
+  };
 };
 export type GetAttendanceSlotDataError = {
   error: { code: number; message: string };

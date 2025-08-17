@@ -2,13 +2,14 @@ import { z, ZodError } from "zod";
 import { NextResponse, NextRequest } from "next/server";
 import { BaseRequest } from "../../../base-request";
 import { Tables } from "@/app/utils/supabase/types";
+import { GetStudentDataSuccess } from "@/lib/requests/students/get+delete";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
 export const GET_SLOT_ATTENDEES_SORT_OPTIONS = [
   "id",
-  "first_name", 
+  "first_name",
   "last_name",
   "recorded_time",
   "created_at",
@@ -27,18 +28,14 @@ const getSlotAttendeesSchema = z.object({
 
 export type GetSlotAttendeesData = z.infer<typeof getSlotAttendeesSchema>;
 
-// Attendee type combining student and attendance record info
-export type SlotAttendee = Omit<Tables<"students">, "organization_id"> & {
-  attendance_record: {
-    id: number;
-    recorded_time: string;
-    attendance_type: Tables<"attendance_records">["attendance_type"];
-    created_at: string;
-  };
-};
-
 export type GetSlotAttendeesDataSuccess = {
-  students: Tables<"students">[];
+  attendees: Array<{
+    attendance_record: Omit<
+      Tables<"attendance_records">,
+      "slot_id" | "student_id"
+    >;
+    student: GetStudentDataSuccess["student"];
+  }>;
   pagination: {
     page: number;
     limit: number;
@@ -67,8 +64,10 @@ export type GetSlotAttendeesDataError = {
 };
 
 // Non-api response types
-export type GetSlotAttendeesSortType = (typeof GET_SLOT_ATTENDEES_SORT_OPTIONS)[number];
-export type GetSlotAttendeesOrderType = (typeof GET_SLOT_ATTENDEES_SORT_ORDERS)[number];
+export type GetSlotAttendeesSortType =
+  (typeof GET_SLOT_ATTENDEES_SORT_OPTIONS)[number];
+export type GetSlotAttendeesOrderType =
+  (typeof GET_SLOT_ATTENDEES_SORT_ORDERS)[number];
 
 // -----------------------------
 // GetSlotAttendeesRequest Class
@@ -179,7 +178,7 @@ export class GetSlotAttendeesRequest extends BaseRequest<GetSlotAttendeesData> {
 
   hasFilters(): boolean {
     const data = this.validated();
-    return !!(data.search);
+    return !!data.search;
   }
 
   getActiveFilters() {
