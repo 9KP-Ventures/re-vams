@@ -74,20 +74,33 @@ export async function GET(
     if (customRequest.getSearch()) {
       const search = customRequest.getSearch();
       query = query.or(
-        `students.first_name.ilike.%${search}%,students.last_name.ilike.%${search}%,students.id.ilike.%${search}%,students.email_address.ilike.%${search}%`
+        `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email_address.ilike.%${search}%,id.ilike.%${search}%`,
+        { foreignTable: 'students' }
       );
     }
 
-    //Apply sorting
-const sortBy = customRequest.getSortBy();
-const sortOrder = customRequest.getSortOrder();
+    // Apply program filter if provided
+    const programId = customRequest.getProgramId();
+    if (programId !== undefined) {
+      query = query.eq('students.program_id', programId);
+    }
 
-if (sortBy === "recorded_time" || sortBy === "created_at") {
-  query = query.order(sortBy, { ascending: sortOrder === "asc" });
-} else {
-  // Use the simpler referenced column syntax
-  query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
-}
+    // Apply year level filter if provided  
+    const yearLevelId = customRequest.getYearLevelId();
+    if (yearLevelId !== undefined) {
+      query = query.eq('students.year_level_id', yearLevelId);
+    }
+
+    //Apply sorting
+    const sortBy = customRequest.getSortBy();
+    const sortOrder = customRequest.getSortOrder();
+
+    if (sortBy === "recorded_time" || sortBy === "created_at") {
+      query = query.order(sortBy, { ascending: sortOrder === "asc" });
+    } else {
+      // Use the simpler referenced column syntax
+      query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
+    }
 
     console.log('SortBy:', sortBy, 'SortOrder:', sortOrder);
 
