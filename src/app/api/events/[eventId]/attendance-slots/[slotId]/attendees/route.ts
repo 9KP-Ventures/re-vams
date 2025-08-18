@@ -49,22 +49,17 @@ export async function GET(
         attendance_type,
         created_at,
         students!attendance_records_student_id_fkey(
-          id,
-          first_name,
-          last_name,
-          middle_name,
-          email_address,
-          program:program_id(
+          *,
+          degrees!degree_id(id, name),
+          programs!program_id(
+            id,
             name
           ),
-          degree:degree_id(
+          majors!major_id(
+            id,
             name
           ),
-          major_id,
-          year_level:year_level_id(
-            name
-          ),
-          created_at
+          year_levels!year_level_id(id, name)
         )
       `
       )
@@ -83,16 +78,18 @@ export async function GET(
       );
     }
 
-    // Apply sorting
-    const sortBy = customRequest.getSortBy();
-    const sortOrder = customRequest.getSortOrder();
-    
-    if (sortBy === "recorded_time" || sortBy === "created_at" || sortBy === "id") {
-      query = query.order(sortBy, { ascending: sortOrder === "asc" });
-    } else {
-      // For student fields, we need to sort by the nested field
-      query = query.order(`students.${sortBy}`, { ascending: sortOrder === "asc" });
-    }
+    //Apply sorting
+const sortBy = customRequest.getSortBy();
+const sortOrder = customRequest.getSortOrder();
+
+if (sortBy === "recorded_time" || sortBy === "created_at") {
+  query = query.order(sortBy, { ascending: sortOrder === "asc" });
+} else {
+  // Use the simpler referenced column syntax
+  query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
+}
+
+    console.log('SortBy:', sortBy, 'SortOrder:', sortOrder);
 
     const { data: attendanceRecords, error } = await query;
 
