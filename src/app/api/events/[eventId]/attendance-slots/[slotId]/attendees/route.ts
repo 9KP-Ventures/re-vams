@@ -18,7 +18,6 @@ export async function GET(
 
   try {
     const supabase = await createClient();
-
     // First, verify that the attendance slot exists and belongs to the event
     const { data: attendanceSlot, error: slotError } = await supabase
       .from("attendance_slots")
@@ -98,11 +97,8 @@ export async function GET(
     if (sortBy === "recorded_time" || sortBy === "created_at") {
       query = query.order(sortBy, { ascending: sortOrder === "asc" });
     } else {
-      // Use the simpler referenced column syntax
       query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
     }
-
-    console.log('SortBy:', sortBy, 'SortOrder:', sortOrder);
 
     const { data: attendanceRecords, error } = await query;
 
