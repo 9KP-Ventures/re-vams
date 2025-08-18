@@ -79,17 +79,19 @@ export async function GET(
     }
 
     //Apply sorting
-const sortBy = customRequest.getSortBy();
-const sortOrder = customRequest.getSortOrder();
+    const sortBy = customRequest.getSortBy();
+    const sortOrder = customRequest.getSortOrder();
 
-if (sortBy === "recorded_time" || sortBy === "created_at") {
-  query = query.order(sortBy, { ascending: sortOrder === "asc" });
-} else {
-  // Use the simpler referenced column syntax
-  query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
-}
+    if (sortBy === "recorded_time" || sortBy === "created_at") {
+      query = query.order(sortBy, { ascending: sortOrder === "asc" });
+    } else {
+      // Use the simpler referenced column syntax
+      query = query.order(`students(${sortBy})`, {
+        ascending: sortOrder === "asc",
+      });
+    }
 
-    console.log('SortBy:', sortBy, 'SortOrder:', sortOrder);
+    console.log("SortBy:", sortBy, "SortOrder:", sortOrder);
 
     const { data: attendanceRecords, error } = await query;
 
@@ -108,7 +110,10 @@ if (sortBy === "recorded_time" || sortBy === "created_at") {
     // Get total count for pagination (with same filters)
     let countQuery = supabase
       .from("attendance_records")
-      .select("students!attendance_records_student_id_fkey(id)", { count: "exact", head: true })
+      .select("students!attendance_records_student_id_fkey(id)", {
+        count: "exact",
+        head: true,
+      })
       .eq("slot_id", customRequest.getSlotId())
       .eq("attendance_type", attendanceSlot.type);
 
