@@ -18,7 +18,6 @@ export async function GET(
 
   try {
     const supabase = await createClient();
-
     // First, verify that the attendance slot exists and belongs to the event
     const { data: attendanceSlot, error: slotError } = await supabase
       .from("attendance_slots")
@@ -74,8 +73,21 @@ export async function GET(
     if (customRequest.getSearch()) {
       const search = customRequest.getSearch();
       query = query.or(
-        `students.first_name.ilike.%${search}%,students.last_name.ilike.%${search}%,students.id.ilike.%${search}%,students.email_address.ilike.%${search}%`
+        `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email_address.ilike.%${search}%,id.ilike.%${search}%`,
+        { foreignTable: 'students' }
       );
+    }
+
+    // Apply program filter if provided
+    const programId = customRequest.getProgramId();
+    if (programId !== undefined) {
+      query = query.eq('students.program_id', programId);
+    }
+
+    // Apply year level filter if provided  
+    const yearLevelId = customRequest.getYearLevelId();
+    if (yearLevelId !== undefined) {
+      query = query.eq('students.year_level_id', yearLevelId);
     }
 
     //Apply sorting
@@ -85,13 +97,8 @@ export async function GET(
     if (sortBy === "recorded_time" || sortBy === "created_at") {
       query = query.order(sortBy, { ascending: sortOrder === "asc" });
     } else {
-      // Use the simpler referenced column syntax
-      query = query.order(`students(${sortBy})`, {
-        ascending: sortOrder === "asc",
-      });
+      query = query.order(`students(${sortBy})`, { ascending: sortOrder === "asc" });
     }
-
-    console.log("SortBy:", sortBy, "SortOrder:", sortOrder);
 
     const { data: attendanceRecords, error } = await query;
 

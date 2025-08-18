@@ -21,6 +21,8 @@ const getSlotAttendeesSchema = z.object({
   page: z.coerce.number().int().min(1),
   limit: z.coerce.number().int().min(1).max(100),
   search: z.string().optional(),
+  program_id: z.coerce.number().int().min(1).optional(),
+  year_level_id: z.coerce.number().int().min(1).optional(),
   sort_by: z.enum(GET_SLOT_ATTENDEES_SORT_OPTIONS),
   sort_order: z.enum(GET_SLOT_ATTENDEES_SORT_ORDERS),
 });
@@ -45,6 +47,8 @@ export type GetSlotAttendeesDataSuccess = {
   };
   filters: {
     search?: string;
+    program_id?: number;
+    year_level_id?: number;
   };
   sort: {
     by: string;
@@ -167,6 +171,14 @@ export class GetSlotAttendeesRequest extends BaseRequest<GetSlotAttendeesData> {
     return this.validated().search;
   }
 
+  getProgramId(): number | undefined {
+    return this.validated().program_id;
+  }
+
+  getYearLevelId(): number | undefined {
+    return this.validated().year_level_id;
+  }
+
   getSortBy(): GetSlotAttendeesSortType {
     return this.validated().sort_by;
   }
@@ -177,14 +189,16 @@ export class GetSlotAttendeesRequest extends BaseRequest<GetSlotAttendeesData> {
 
   hasFilters(): boolean {
     const data = this.validated();
-    return !!data.search;
+    return !!(data.search || data.program_id || data.year_level_id);
   }
 
   getActiveFilters() {
     const data = this.validated();
-    const filters: Record<string, string> = {};
+    const filters: Record<string, string | number> = {};
 
     if (data.search) filters.search = data.search;
+    if (data.program_id) filters.program_id = data.program_id;
+    if (data.year_level_id) filters.year_level_id = data.year_level_id;
 
     return filters;
   }
