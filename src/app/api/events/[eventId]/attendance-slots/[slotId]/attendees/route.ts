@@ -117,7 +117,10 @@ export async function GET(
     // Get total count for pagination (with same filters)
     let countQuery = supabase
       .from("attendance_records")
-      .select("students!attendance_records_student_id_fkey(id)", { count: "exact", head: true })
+      .select("students!attendance_records_student_id_fkey(id)", {
+        count: "exact",
+        head: true,
+      })
       .eq("slot_id", customRequest.getSlotId())
       .eq("attendance_type", attendanceSlot.type);
 
