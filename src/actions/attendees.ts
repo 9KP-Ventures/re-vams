@@ -57,6 +57,7 @@ export async function getSlotAttendees(
 
     const response: Response = await fetch(url, {
       method: "GET",
+      cache: "no-cache",
     });
 
     if (!response.ok) {
