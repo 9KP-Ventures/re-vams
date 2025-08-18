@@ -8,7 +8,6 @@ import { GetStudentDataSuccess } from "@/lib/requests/students/get+delete";
 // Schema Definitions
 // -----------------------------
 export const GET_SLOT_ATTENDEES_SORT_OPTIONS = [
-  "id",
   "first_name",
   "last_name",
   "recorded_time",
