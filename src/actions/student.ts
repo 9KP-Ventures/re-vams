@@ -1,3 +1,5 @@
+"use server";
+
 import { getServerOrigin } from "@/app/utils/server";
 import {
   GenerateCodeData,
