@@ -2,16 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
-import {
-  Circle,
-  CornerUpLeft,
-  DownloadCloud,
-  Edit,
-  QrCode,
-  Search,
-  X,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Circle, DownloadCloud, Edit, QrCode, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -20,27 +11,24 @@ import {
 } from "@/components/ui/popover";
 import { useState } from "react";
 import StudentLookupMobile from "./student-lookup-mobile";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import Link from "next/link";
 
 export default function SingleEventHeader({
   event,
 }: {
   event: GetEventDataSuccess["event"];
 }) {
-  const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <div className="relative mt-8">
-      {/* Back button */}
-      <Button
-        onClick={() => router.back()}
-        variant="link"
-        className="absolute -top-10 -left-3"
-      >
-        <CornerUpLeft />
-        Back
-      </Button>
-
       {/* Event status */}
       <Badge
         variant="outline"
@@ -64,7 +52,7 @@ export default function SingleEventHeader({
           <h1 className="text-4xl font-extrabold capitalize overflow-wrap-normal break-words">
             {event.name}
           </h1>
-          <div aria-label="Event details" className="flex space-x-2">
+          <div aria-label="Event details" className="mt-2 flex space-x-2">
             <p>
               {new Date(event.date).toLocaleDateString("en-US", {
                 month: "long",
@@ -75,9 +63,23 @@ export default function SingleEventHeader({
             <p className="text-sm text-muted-foreground">&#124;</p>
             <p className="capitalize">{event.semesters.name}</p>
           </div>
-          <div className="text-sm text-primary/50 dark:text-muted-foreground">
-            Dashboard / Events / {event.id}
-          </div>
+          <Breadcrumb className="mt-4 mb-2">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="#">Dashboard</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/admin/events">Events</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>{event.id}</BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
 
         <div className="flex flex-wrap gap-2">

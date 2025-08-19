@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { getAttendanceSlot } from "@/actions/attendance-slot";
 import { getSlotAttendees } from "@/actions/attendees";
-import { Button } from "@/components/ui/button";
 import { GetSlotAttendeesDataSuccess } from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { GetAttendanceSlotDataSuccess } from "@/lib/requests/events/attendance-slots/get+delete";
 import { formatAmount, formatTime } from "@/lib/utils";
-import { Clock, CornerUpLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Clock } from "lucide-react";
 import AttendeesListSearchForm from "./attendees-list-search-form";
 import AttendeesListView from "./attendees-list-view";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import Link from "next/link";
 
 // Component is made client since this is pseudochild component of the event-view.tsx
 export default function AttendeesList({
@@ -29,7 +35,6 @@ export default function AttendeesList({
     null
   );
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchAttendees = async () => {
@@ -73,15 +78,29 @@ export default function AttendeesList({
 
   return (
     <div className="relative mt-8">
-      {/* Back button */}
-      <Button
-        onClick={() => router.back()}
-        variant="link"
-        className="absolute -top-10 -left-3"
-      >
-        <CornerUpLeft className="mr-1" />
-        Back
-      </Button>
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="#">Dashboard</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/admin/events">Events</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/admin/events/${eventId}`}>{eventId}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Slot</BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="flex gap-4">
@@ -110,6 +129,7 @@ export default function AttendeesList({
 
       {/* Attendees list view */}
       <AttendeesListView
+        key={Math.random()}
         attendees={attendees.attendees}
         pagination={attendees.pagination}
         eventId={eventId}

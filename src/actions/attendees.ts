@@ -7,6 +7,7 @@ import {
   GetSlotAttendeesDataSuccess,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { ParamConfig, ParamValue, TransformFunction } from "./types";
+import { revalidateTag } from "next/cache";
 
 export async function getSlotAttendees(
   eventId: number,
@@ -27,6 +28,8 @@ export async function getSlotAttendees(
         apiKey: "sort_by",
       },
       order: { apiKey: "sort_order" },
+      program_id: { apiKey: "program_id" },
+      year_level_id: { apiKey: "year_level_id" },
     };
 
     const queryParams = Object.entries(paramConfig).reduce(
@@ -55,9 +58,16 @@ export async function getSlotAttendees(
       queryParams.toString() ? `?${queryParams.toString()}` : ""
     }`;
 
+    // Create tag for this specific data
+    const tag = `attendees-${eventId}-${slotId}`;
+
     const response: Response = await fetch(url, {
       method: "GET",
-      cache: "no-cache",
+      // Use next.js cache with tag instead of no-cache
+      next: {
+        tags: [tag],
+        revalidate: 60,
+      },
     });
 
     if (!response.ok) {
@@ -74,4 +84,13 @@ export async function getSlotAttendees(
     console.error("Error fetching slot attendees", error);
     return null;
   }
+}
+
+// Add a revalidation function
+export async function invalidateAttendeesCache(
+  eventId: number,
+  slotId: number
+): Promise<void> {
+  const tag = `attendees-${eventId}-${slotId}`;
+  revalidateTag(tag);
 }

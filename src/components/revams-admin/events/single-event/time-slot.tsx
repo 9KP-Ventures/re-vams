@@ -14,7 +14,7 @@ export default function TimeSlot({
   data: GetAttendanceSlotsDataSuccess["attendance_slots"][0];
   stripColor?: string;
 }) {
-  const { setTimeSlot } = useSingleEventParams();
+  const { setTimeSlot, setStudentId } = useSingleEventParams();
 
   const slotType = data.type === "TIME_IN" ? "Time in" : "Time out";
   const slotColor = data.type === "TIME_IN" ? "bg-primary" : "bg-secondary/70";
@@ -22,7 +22,10 @@ export default function TimeSlot({
   return (
     <Card
       className="py-4 sm:py-7 overflow-hidden relative hover:scale-[1.02] cursor-pointer transition-transform duration-200"
-      onClick={() => setTimeSlot(data.id)}
+      onClick={() => {
+        setTimeSlot(data.id);
+        setStudentId(null);
+      }}
     >
       {/* Notch strip */}
       <div

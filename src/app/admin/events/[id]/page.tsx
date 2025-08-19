@@ -23,6 +23,8 @@ const singleEventSearchParamsSchema = z.object({
     .optional()
     .default("recorded_time"),
   order: z.enum(GET_SLOT_ATTENDEES_SORT_ORDERS).optional().default("asc"),
+  program_id: z.coerce.number().optional(),
+  year_level_id: z.coerce.number().optional(),
 });
 
 export type ValidatedSingleEventParams = z.infer<

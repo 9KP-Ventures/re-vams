@@ -3,13 +3,13 @@
 import { getSlotAttendees } from "@/actions/attendees";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GetSlotAttendeesDataSuccess } from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { formatTime } from "@/lib/utils";
-import { FilterIcon, Loader2, SortAscIcon, User2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Loader2, User2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import AttendeesFilters from "./attendees-filters";
 
 export default function AttendeesListView({
   attendees: initialAttendees,
@@ -29,7 +29,20 @@ export default function AttendeesListView({
     useState<GetSlotAttendeesDataSuccess["attendees"]>(initialAttendees);
   const [page, setPage] = useState(1);
 
+  const loadingRef = useRef(false);
+
+  useEffect(() => {
+    loadingRef.current = false;
+  }, [initialAttendees, params.search, params.sort, params.order]);
+
   const loadMoreAttendees = useCallback(async () => {
+    // Return early if already loading or no more pages
+    if (loadingRef.current || attendees.length >= pagination.total) {
+      return;
+    }
+
+    loadingRef.current = true;
+
     const next = page + 1;
     const newAttendees = await getSlotAttendees(eventId, slotId, params, next);
 
@@ -40,42 +53,25 @@ export default function AttendeesListView({
         ...newAttendees.attendees,
       ]);
     }
-  }, [eventId, slotId, params, page]);
+    setTimeout(() => {
+      loadingRef.current = false;
+    }, 300);
+  }, [eventId, slotId, params, page, attendees, pagination]);
 
   useEffect(() => {
-    if (inView) {
+    if (inView && pagination.hasNextPage) {
       // Load more attendees when the loader comes into view
       loadMoreAttendees();
     }
-  }, [inView, loadMoreAttendees]);
+  }, [pagination, inView, loadMoreAttendees]);
 
   return (
     <div className="mt-6">
-      {/* Filter and sorting controls */}
       <div className="flex flex-wrap gap-2 mb-4 items-center justify-between">
         <h3 className="text-lg font-semibold">
           Attendees ({pagination.total || 0})
         </h3>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex items-center gap-1.5"
-          >
-            <FilterIcon className="h-4 w-4" />
-            Filter
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex items-center gap-1.5"
-          >
-            <SortAscIcon className="h-4 w-4" />
-            Sort
-          </Button>
-        </div>
+        <AttendeesFilters />
       </div>
 
       {/* Table-style list with headers */}
@@ -163,7 +159,9 @@ export default function AttendeesListView({
               <User2 className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-center">
-              No attendees recorded for this time slot.
+              {params.year_level_id || params.program_id
+                ? "No attendees found with the selected filters."
+                : "No attendees recorded for this time slot."}
             </p>
           </CardContent>
         </Card>
@@ -172,8 +170,7 @@ export default function AttendeesListView({
       {/* Show current page info (will be replaced by infinite scroll) */}
       {attendees.length > 0 && (
         <div className="my-8 text-sm text-center text-muted-foreground">
-          Showing {Math.min(pagination.total, attendees.length)} of{" "}
-          {pagination.total} attendees
+          Showing {attendees.length} of {pagination.total} attendees
         </div>
       )}
     </div>
