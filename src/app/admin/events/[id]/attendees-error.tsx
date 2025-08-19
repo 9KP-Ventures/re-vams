@@ -1,12 +1,10 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function SingleEventNotFound() {
+export default function AttendeesDataError({ eventId }: { eventId: number }) {
   const router = useRouter();
 
   return (
@@ -16,41 +14,41 @@ export default function SingleEventNotFound() {
           <div className="flex flex-col items-center text-center space-y-6">
             {/* Icon */}
             <div className="rounded-full bg-destructive/10 p-5 mb-2">
-              <Calendar className="h-12 w-12 text-destructive" />
+              <AlertTriangle className="h-12 w-12 text-destructive" />
             </div>
 
             {/* Title and description */}
             <div className="space-y-2">
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight">
-                Event Not Found
+                Something Went Wrong
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground max-w-sm">
-                The event you&apos;re looking for doesn&apos;t exist or may have
-                been removed.
+                Attendees data could not be loaded for this time slot.
               </p>
             </div>
 
+            {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => router.back()}
-                asChild
               >
-                <Link href="/admin/events">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Go Back
-                </Link>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Go Back
               </Button>
             </div>
 
+            {/* Additional link */}
             <div className="pt-4 border-t w-full">
               <Button
                 variant="link"
                 asChild
                 className="text-sm text-muted-foreground"
               >
-                <Link href="/admin/events">Go to events</Link>
+                <Link href={`/admin/events/${eventId}`}>
+                  Return to event overview
+                </Link>
               </Button>
             </div>
           </div>

@@ -1,16 +1,12 @@
 "use server";
 
-import { getEventData } from "@/actions/event";
-import AttendeesList from "@/components/revams-admin/events/single-event/attendees-list";
-import SingleEventHeader from "@/components/revams-admin/events/single-event/event-header-and-stats";
-import MainEventViewPage from "@/components/revams-admin/events/single-event/event-view";
-import MainEventViewPageSkeleton from "@/components/revams-admin/events/single-event/event-view-skeleton";
+import SingleEventWrapper from "@/components/revams-admin/events/single-event/single-event-wrapper";
 import {
   GET_SLOT_ATTENDEES_SORT_OPTIONS,
   GET_SLOT_ATTENDEES_SORT_ORDERS,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
-import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
+
 import z from "zod";
 
 const singleEventSearchParamsSchema = z.object({
@@ -39,11 +35,6 @@ export default async function SingleEventViewPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
-  const event = await getEventData(id);
-
-  if (!event) {
-    return notFound();
-  }
 
   // Parse and validate params
   const result = singleEventSearchParamsSchema.safeParse(await searchParams);
@@ -60,23 +51,9 @@ export default async function SingleEventViewPage({
   }
 
   return (
-    <>
-      <div>
-        {validatedParams.time_slot ? (
-          <AttendeesList
-            eventId={event.id}
-            slot={validatedParams.time_slot}
-            params={validatedParams}
-          />
-        ) : (
-          <>
-            <SingleEventHeader event={event} />
-            <Suspense fallback={<MainEventViewPageSkeleton />}>
-              <MainEventViewPage event={event} />
-            </Suspense>
-          </>
-        )}
-      </div>
-    </>
+    <SingleEventWrapper
+      eventId={parseInt(id)}
+      validatedParams={validatedParams}
+    />
   );
 }

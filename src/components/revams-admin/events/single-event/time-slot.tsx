@@ -42,7 +42,7 @@ export default function TimeSlot({
 
         <div className="flex flex-col flex-1">
           <div className="flex items-center gap-x-3">
-            <span className="font-bold text-base sm:text-xl">
+            <span className="font-bold text-sm sm:text-xl">
               {formatTime(data.trigger_time)}
             </span>
             <Badge className={slotColor}>{slotType}</Badge>

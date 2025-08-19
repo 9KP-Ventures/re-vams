@@ -126,6 +126,7 @@ export function useEventsParams() {
       setParams({
         order: "asc",
         sort: "name",
+        page: DEFAULT_PARAMS.page,
       });
       setSearchParam(newSearch);
     });

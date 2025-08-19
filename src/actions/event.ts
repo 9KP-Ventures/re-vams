@@ -7,7 +7,7 @@ import {
 } from "@/lib/requests/events/get+delete";
 
 export async function getEventData(
-  id: string
+  id: number
 ): Promise<GetEventDataSuccess["event"] | null> {
   try {
     const origin = await getServerOrigin();

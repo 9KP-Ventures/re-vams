@@ -7,7 +7,7 @@ export default function StudentLookupSkeleton() {
     <Card className="animate-pulse py-4">
       <CardHeader className="border-b-1 relative">
         <CardTitle>
-          <div className="h-8 bg-muted rounded-lg w-40"></div>
+          <div className="h-8 bg-muted rounded-lg w-44"></div>
         </CardTitle>
       </CardHeader>
 

@@ -1,11 +1,14 @@
 "use client";
 
+import SingleEventHeaderSkeleton from "./event-header-and-stats-skeleton";
 import StudentLookupSkeleton from "./student-lookup-skeleton";
 import TimeSlotSkeleton from "./time-slot-skeleton";
 
 export default function MainEventViewPageSkeleton() {
   return (
     <>
+      {/* Event header skeleton */}
+      <SingleEventHeaderSkeleton />
       {/* Time slots and student look-up section */}
       <div className="flex gap-2 mt-4">
         {/* Time slots skeleton */}
