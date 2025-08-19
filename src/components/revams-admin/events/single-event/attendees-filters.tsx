@@ -23,7 +23,7 @@ import {
   SortDescIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FilterGroup } from "../many-events/event-filter-group";
+import { FilterGroup } from "../../../ui/filter-group";
 import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
 import { getYearLevels } from "@/actions/year-levels";
 

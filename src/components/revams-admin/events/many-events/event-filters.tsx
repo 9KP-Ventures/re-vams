@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { FilterGroup } from "./event-filter-group";
+import { FilterGroup } from "../../../ui/filter-group";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useEventsParams } from "@/lib/hooks/event-params";
