@@ -16,7 +16,6 @@ export default function TimeSlot({
 }) {
   const { setTimeSlot, setStudentId } = useSingleEventParams();
 
-  const slotType = data.type === "TIME_IN" ? "Time in" : "Time out";
   const slotColor = data.type === "TIME_IN" ? "bg-primary" : "bg-secondary/70";
 
   return (
@@ -45,7 +44,9 @@ export default function TimeSlot({
             <span className="font-bold text-sm sm:text-xl">
               {formatTime(data.trigger_time)}
             </span>
-            <Badge className={slotColor}>{slotType}</Badge>
+            <Badge className={cn(slotColor, "capitalize")}>
+              {data.type.split("_").join(" ").toLowerCase()}
+            </Badge>
 
             <span className="ml-auto text-lg sm:text-xl font-bold tracking-wide text-muted-foreground">
               #{data.id}

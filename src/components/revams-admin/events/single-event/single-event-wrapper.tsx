@@ -31,6 +31,7 @@ import AddTimeSlot from "./add-time-slot";
 import AttendeeViewSkeleton from "./attendee-view-skeleton";
 import AttendeesDataError from "@/app/admin/events/[id]/attendees-error";
 import TimeSlotDataError from "@/app/admin/events/[id]/time-slot-error";
+import { Badge } from "@/components/ui/badge";
 
 const MAX_TIME_SLOTS = 5; // Define your constant
 
@@ -163,6 +164,22 @@ export default function SingleEventWrapper({
     // Render attendee view
     return (
       <div className="relative mt-8">
+        {/* Event status */}
+        <Badge
+          variant={
+            attendeeViewData.slotInfo.attendance_slot.type === "TIME_IN"
+              ? "default"
+              : attendeeViewData.slotInfo.attendance_slot.type === "TIME_OUT"
+              ? "secondary"
+              : "outline"
+          }
+          className="absolute -top-10 right-0 flex items-center gap-2 px-6 py-2 rounded-full capitalize"
+        >
+          {attendeeViewData.slotInfo.attendance_slot.type
+            .split("_")
+            .join(" ")
+            .toLowerCase()}
+        </Badge>
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>

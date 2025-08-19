@@ -12,10 +12,17 @@ import { Clock } from "lucide-react";
 import Link from "next/link";
 import AttendeesListViewSkeleton from "./attendees-list-view-skeleton";
 import AttendeesListSearchFormSkeleton from "./attendees-list-search-form-skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function AttendeeViewSkeleton({ eventId }: { eventId: number }) {
   return (
     <div className="relative mt-8">
+      <Badge
+        variant="outline"
+        className="absolute -top-10 right-0 flex items-center gap-2 px-4 py-2 rounded-full capitalize"
+      >
+        <Skeleton className="w-16 h-4" />
+      </Badge>
       {/* Breadcrumb */}
       <Breadcrumb className="mb-4">
         <BreadcrumbList>

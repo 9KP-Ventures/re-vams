@@ -109,6 +109,22 @@ export default function AttendeesFilters() {
     order: order || "asc",
   });
 
+  const [isMounted, setIsMounted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
+
+  // Only run this effect on the client
+  useEffect(() => {
+    setIsMounted(true);
+    setWindowWidth(window.innerWidth);
+
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Effect to load programs and year levels
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -231,7 +247,11 @@ export default function AttendeesFilters() {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[500px] p-0" align="end">
+        <PopoverContent
+          className="w-[297px] md:w-[500px] p-0"
+          align={isMounted && windowWidth < 768 ? "start" : "end"}
+          side="bottom"
+        >
           {/* Header */}
           <div className="px-4 pb-2 py-2 sm:py-4 border-b">
             <div className="flex items-center justify-between">
@@ -258,13 +278,13 @@ export default function AttendeesFilters() {
           </div>
 
           {/* Filter Groups */}
-          <div className="divide-y grid grid-cols-[1fr_0.5fr]">
+          <div className="divide-y grid grid-cols-1 md:grid-cols-[1fr_0.5fr]">
             {/* Program Filter Group */}
             <FilterGroup
               title="Program"
               badgeCount={draftFilters.programId ? 1 : 0}
             >
-              <div className="mt-2 max-h-48 overflow-y-auto pr-1">
+              <div className="mt-2 max-h-36 md:max-h-48 overflow-y-auto pr-1">
                 {programs.length > 0 ? (
                   <div className="space-y-1">
                     {programs.map(program => (
@@ -273,7 +293,7 @@ export default function AttendeesFilters() {
                         className={`
                             flex justify-between items-center w-full px-3 py-1.5 rounded-md text-sm cursor-pointer
                             ${
-                              draftFilters.programId === program.id
+                              Number(draftFilters.programId) === program.id
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "bg-background hover:bg-accent text-foreground"
                             }
@@ -302,7 +322,7 @@ export default function AttendeesFilters() {
               title="Year Level"
               badgeCount={draftFilters.yearLevelId ? 1 : 0}
             >
-              <div className="mt-2 max-h-48 overflow-y-auto pr-1">
+              <div className="mt-2 max-h-22 md:max-h-48 overflow-y-auto pr-1">
                 {yearLevels.length > 0 ? (
                   <div className="space-y-1">
                     {yearLevels.map(yearLevel => (

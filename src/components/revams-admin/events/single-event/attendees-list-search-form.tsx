@@ -49,7 +49,7 @@ export default function AttendeesListSearchForm() {
         onBlur={handleSearchBlur}
         onKeyDown={handleSearchKeyDown}
         placeholder="Search attendee..."
-        className="w-full h-12 pl-10 pr-44"
+        className="w-full text-sm md:text-base h-12 pl-10 pr-22 md:pr-44"
         disabled={isPending}
       />
       <span
