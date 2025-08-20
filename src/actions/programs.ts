@@ -7,32 +7,32 @@ import {
 } from "@/lib/requests/programs/get";
 
 export async function getPrograms(): Promise<
-  GetProgramsDataSuccess["programs"]
+  GetProgramsDataSuccess | GetProgramsDataError
 > {
   try {
     const origin = await getServerOrigin();
     const response: Response = await fetch(
       `${origin}/api/programs?sortBy=name&sortOrder=asc`,
       {
-        cache: "force-cache", // Cache for performance
-        next: { revalidate: 3600 }, // Revalidate every hour
         method: "GET",
       }
     );
 
     if (!response.ok) {
-      const data: GetProgramsDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetProgramsDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetProgramsDataSuccess = await response.json();
-    const { programs } = data;
-    return programs;
+    return data;
   } catch (error) {
-    console.error("Error fetching programs:", error);
-    return [];
+    const errorMessage: GetProgramsDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the programs: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

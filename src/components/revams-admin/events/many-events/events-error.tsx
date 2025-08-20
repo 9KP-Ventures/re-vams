@@ -1,56 +1,68 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
-interface EventsErrorProps extends React.HTMLAttributes<HTMLDivElement> {
-  errorType?: string | undefined;
-}
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function EventsError({ errorType, ...props }: EventsErrorProps) {
+export default function EventsError() {
   const router = useRouter();
+  const pathname = usePathname();
 
-  const errorMessages = {
-    true: "We couldn't load your events. Please try again later.",
-    fetch_failed: "Failed to fetch events from the server.",
-  };
-
-  const message =
-    errorMessages[errorType as keyof typeof errorMessages] ||
-    errorMessages.true;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", pathname);
+    }
+  }, [pathname]);
 
   return (
-    <div
-      className={cn(
-        "max-w-md mx-auto rounded-lg shadow-lg border border-destructive-foreground bg-destructive-foreground/20 p-5",
-        props.className
-      )}
-    >
-      {/* Error Header */}
-      <div className="flex items-center mb-4">
-        <div className="h-10 w-10 rounded-full bg-destructive-foreground/20 flex items-center justify-center mr-3">
-          <AlertCircle size={20} className="text-destructive" />
-        </div>
-        <h3 className="text-destructive font-medium text-lg">
-          Something went wrong
-        </h3>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
+      <Card className="max-w-md w-full shadow-lg border-destructive/10">
+        <CardContent className="pt-6 pb-8 px-6">
+          <div className="flex flex-col items-center text-center space-y-6">
+            {/* Icon */}
+            <div className="rounded-full bg-destructive/10 p-5 mb-2">
+              <AlertTriangle className="h-12 w-12 text-destructive" />
+            </div>
 
-      {/* Error Message */}
-      <p className="text-muted-foreground mb-5">{message}</p>
+            {/* Title and description */}
+            <div className="space-y-2">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight">
+                Something Went Wrong
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground max-w-sm">
+                An unexpected error occurred when fetching the events data.
+              </p>
+            </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 justify-end">
-        <Button
-          onClick={() => router.replace("/admin/events")}
-          className="font-medium text-sm"
-          variant="outline"
-        >
-          Try Again
-        </Button>
-      </div>
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Go Back
+              </Button>
+            </div>
+
+            {/* Additional link */}
+            <div className="pt-4 border-t w-full">
+              <Button
+                variant="link"
+                asChild
+                className="text-sm text-muted-foreground"
+              >
+                <Link href="/admin/events">Return to events</Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

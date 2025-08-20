@@ -14,7 +14,7 @@ export async function getSlotAttendees(
   slotId: number,
   params?: ValidatedSingleEventParams,
   page?: number
-): Promise<GetSlotAttendeesDataSuccess | null> {
+): Promise<GetSlotAttendeesDataSuccess | GetSlotAttendeesDataError> {
   try {
     const origin = await getServerOrigin();
 
@@ -71,18 +71,21 @@ export async function getSlotAttendees(
     });
 
     if (!response.ok) {
-      const data: GetSlotAttendeesDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetSlotAttendeesDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetSlotAttendeesDataSuccess = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching slot attendees", error);
-    return null;
+    const errorMessage: GetSlotAttendeesDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching slot attendees. ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }
 

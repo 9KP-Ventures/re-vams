@@ -3,64 +3,71 @@
 import { getServerOrigin } from "@/app/utils/server";
 import {
   GenerateCodeData,
-  GenerateCodeError,
-  GenerateCodeSuccess,
+  GenerateCodeDataError,
+  GenerateCodeDataSuccess,
 } from "@/lib/requests/code/generate/get";
 import {
   GetStudentDataError,
   GetStudentDataSuccess,
 } from "@/lib/requests/students/get+delete";
 
-export type StudentWithCode = GetStudentDataSuccess["student"] & {
-  code: string;
-};
-
 export async function getStudentData(
   id: string
-): Promise<StudentWithCode | null> {
+): Promise<GetStudentDataSuccess | GetStudentDataError> {
   try {
     const origin = await getServerOrigin();
 
     const response: Response = await fetch(`${origin}/api/students/${id}`, {
       method: "GET",
-      cache: "no-store", // Don't cache sensitive student data
     });
 
     if (!response.ok) {
-      const data: GetStudentDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetStudentDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetStudentDataSuccess = await response.json();
-    const { student } = data;
+    return data;
+  } catch (error) {
+    const errorMessage: GetStudentDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching student data: ${error}`,
+      },
+    };
+    return errorMessage;
+  }
+}
 
-    const codeResponse: Response = await fetch(`${origin}/api/code/generate`, {
+export async function getStudentCode(
+  id: string
+): Promise<GenerateCodeDataSuccess | GenerateCodeDataError> {
+  try {
+    const origin = await getServerOrigin();
+
+    const response: Response = await fetch(`${origin}/api/code/generate`, {
       method: "POST",
       body: JSON.stringify({
         student_id: id,
       } as GenerateCodeData),
     });
 
-    if (!codeResponse.ok) {
-      const codeData: GenerateCodeError = await codeResponse.json();
-      const { error } = codeData;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+    if (!response.ok) {
+      const error: GenerateCodeDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
-    const codeData: GenerateCodeSuccess = await codeResponse.json();
-    const { code } = codeData;
-
-    return {
-      ...student,
-      code,
-    };
+    const data: GenerateCodeDataSuccess = await response.json();
+    return data;
   } catch (error) {
-    console.log("Fetching student data error:", error);
-    return null;
+    const errorMessage: GenerateCodeDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while generating student code: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

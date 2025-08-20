@@ -15,8 +15,14 @@ import {
   GetStudentDataError,
   GetStudentDataSuccess,
 } from "@/lib/requests/students/get+delete";
-import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
-import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
+import {
+  GetProgramsDataError,
+  GetProgramsDataSuccess,
+} from "@/lib/requests/programs/get";
+import {
+  GetYearLevelsDataError,
+  GetYearLevelsDataSuccess,
+} from "@/lib/requests/year-levels/get";
 
 export type RegistrationFormData = {
   idNumber: string;
@@ -189,13 +195,17 @@ export const registerStudent = async (
 
 // Helper function to get all registration data
 export async function getRegistrationData(): Promise<{
-  programs: GetProgramsDataSuccess["programs"];
-  yearLevels: GetYearLevelsDataSuccess["year_levels"];
+  programs: GetProgramsDataSuccess["programs"] | GetProgramsDataError;
+  yearLevels: GetYearLevelsDataSuccess["year_levels"] | GetYearLevelsDataError;
 }> {
-  const [programs, yearLevels] = await Promise.all([
+  const [programsData, yearLevelsData] = await Promise.all([
     getPrograms(),
     getYearLevels(),
   ]);
 
-  return { programs, yearLevels };
+  return {
+    programs: "error" in programsData ? programsData : programsData.programs,
+    yearLevels:
+      "error" in yearLevelsData ? yearLevelsData : yearLevelsData.year_levels,
+  };
 }

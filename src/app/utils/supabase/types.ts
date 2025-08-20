@@ -144,8 +144,8 @@ export type Database = {
       events: {
         Row: {
           created_at: string
-          custom_email_message: string
-          custom_email_subject: string
+          custom_email_message: string | null
+          custom_email_subject: string | null
           date: string
           id: number
           name: string
@@ -155,8 +155,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          custom_email_message: string
-          custom_email_subject?: string
+          custom_email_message?: string | null
+          custom_email_subject?: string | null
           date: string
           id?: number
           name?: string
@@ -166,8 +166,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          custom_email_message?: string
-          custom_email_subject?: string
+          custom_email_message?: string | null
+          custom_email_subject?: string | null
           date?: string
           id?: number
           name?: string

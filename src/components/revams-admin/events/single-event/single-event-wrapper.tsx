@@ -16,10 +16,22 @@ import { getAttendanceSlots } from "@/actions/attendance-slots";
 import { getSlotAttendees } from "@/actions/attendees";
 import { getAttendanceSlot } from "@/actions/attendance-slot";
 import { formatTime, formatAmount } from "@/lib/utils";
-import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
-import { GetAttendanceSlotsDataSuccess } from "@/lib/requests/events/attendance-slots/get-many";
-import { GetSlotAttendeesDataSuccess } from "@/lib/requests/events/attendance-slots/attendees/get-many";
-import { GetAttendanceSlotDataSuccess } from "@/lib/requests/events/attendance-slots/get+delete";
+import {
+  GetEventDataError,
+  GetEventDataSuccess,
+} from "@/lib/requests/events/get+delete";
+import {
+  GetAttendanceSlotsDataError,
+  GetAttendanceSlotsDataSuccess,
+} from "@/lib/requests/events/attendance-slots/get-many";
+import {
+  GetSlotAttendeesDataError,
+  GetSlotAttendeesDataSuccess,
+} from "@/lib/requests/events/attendance-slots/attendees/get-many";
+import {
+  GetAttendanceSlotDataError,
+  GetAttendanceSlotDataSuccess,
+} from "@/lib/requests/events/attendance-slots/get+delete";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
 import SingleEventHeader from "./event-header-and-stats";
 import MainEventViewPageSkeleton from "./event-view-skeleton";
@@ -32,6 +44,7 @@ import AttendeeViewSkeleton from "./attendee-view-skeleton";
 import AttendeesDataError from "@/app/admin/events/[id]/attendees-error";
 import TimeSlotDataError from "@/app/admin/events/[id]/time-slot-error";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const MAX_TIME_SLOTS = 5; // Define your constant
 
@@ -44,9 +57,17 @@ export default function SingleEventWrapper({
 }) {
   // State for event data
   const [event, setEvent] = useState<GetEventDataSuccess["event"] | null>(null);
+  const [eventError, setEventError] = useState<
+    GetEventDataError["error"] | null
+  >(null);
+
   const [slots, setSlots] = useState<
     GetAttendanceSlotsDataSuccess["attendance_slots"]
   >([]);
+  const [slotsError, setSlotsError] = useState<
+    GetAttendanceSlotsDataError["error"] | null
+  >(null);
+
   const [loading, setLoading] = useState(true);
 
   // State for attendee view
@@ -59,6 +80,12 @@ export default function SingleEventWrapper({
     slotInfo: null,
     loading: true,
   });
+  const [slotInfoError, setSlotInfoError] = useState<
+    GetAttendanceSlotDataError["error"] | null
+  >(null);
+  const [attendeesError, setAttendeesError] = useState<
+    GetSlotAttendeesDataError["error"] | null
+  >(null);
 
   // Determine if we're in attendee list mode
   const isAttendeeView = Boolean(validatedParams.time_slot);
@@ -68,27 +95,32 @@ export default function SingleEventWrapper({
     const fetchEventData = async () => {
       setLoading(true);
 
-      try {
-        // Fetch event data
-        const eventData = await getEventData(eventId);
+      // Fetch event data
+      const eventData = await getEventData(eventId);
 
-        if (!eventData) {
-          setLoading(false);
-          return; // Will trigger notFound() in render phase
-        }
-
-        setEvent(eventData);
-
-        // Only fetch slots if not in attendee view
-        if (!isAttendeeView) {
-          const slotsData = await getAttendanceSlots(eventId);
-          setSlots(slotsData || []);
-        }
-      } catch (error) {
-        console.error("Error fetching event data:", error);
-      } finally {
+      if ("error" in eventData) {
+        setEventError(eventData.error);
+        setEvent(null);
         setLoading(false);
+        return;
       }
+
+      setEvent(eventData.event);
+
+      // Only fetch slots if not in attendee view
+      if (!isAttendeeView) {
+        const slotsData = await getAttendanceSlots(eventId);
+
+        if ("error" in slotsData) {
+          setSlots([]);
+          setSlotsError(slotsData.error);
+          setLoading(false);
+          return;
+        }
+
+        setSlots(slotsData.attendance_slots);
+      }
+      setLoading(false);
     };
 
     fetchEventData();
@@ -101,34 +133,54 @@ export default function SingleEventWrapper({
 
       setAttendeeViewData(prev => ({ ...prev, loading: true }));
 
-      try {
-        // Parallel fetch for better performance
-        const [attendeesData, slotData] = await Promise.all([
-          getSlotAttendees(
-            eventId,
-            validatedParams.time_slot!,
-            validatedParams
-          ),
-          getAttendanceSlot(eventId, validatedParams.time_slot!),
-        ]);
+      const [attendeesData, slotData] = await Promise.all([
+        getSlotAttendees(eventId, validatedParams.time_slot!, validatedParams),
+        getAttendanceSlot(eventId, validatedParams.time_slot!),
+      ]);
 
-        setAttendeeViewData({
-          attendees: attendeesData,
-          slotInfo: slotData,
-          loading: false,
-        });
-      } catch (error) {
-        console.error("Error fetching attendee data:", error);
+      if ("error" in slotData) {
         setAttendeeViewData({
           attendees: null,
           slotInfo: null,
           loading: false,
         });
+        setSlotInfoError(slotData.error);
+        return;
       }
+
+      if ("error" in attendeesData) {
+        setAttendeeViewData({
+          attendees: null,
+          slotInfo: null,
+          loading: false,
+        });
+        setAttendeesError(attendeesData.error);
+        return;
+      }
+
+      setAttendeeViewData({
+        attendees: attendeesData,
+        slotInfo: slotData,
+        loading: false,
+      });
     };
 
     fetchAttendeeViewData();
   }, [eventId, isAttendeeView, event, validatedParams]);
+
+  useEffect(() => {
+    if (slotsError) {
+      toast.error(`Event slots data error: ${slotsError.code}`, {
+        description: slotsError.message,
+      });
+    }
+
+    if (slotInfoError) {
+      toast.error(`Time slot data error: ${slotInfoError.code}`, {
+        description: slotInfoError.message,
+      });
+    }
+  }, [slotInfoError, slotsError]);
 
   // Show loading state while fetching initial data
   if (loading) {
@@ -136,7 +188,7 @@ export default function SingleEventWrapper({
   }
 
   // Show not found if event doesn't exist
-  if (!event) {
+  if ((eventError && eventError.code === 404) || !event) {
     return notFound();
   }
 
@@ -157,7 +209,10 @@ export default function SingleEventWrapper({
       );
     }
 
-    if (!attendeeViewData.attendees) {
+    if (
+      (attendeesError && attendeesError.code === 404) ||
+      !attendeeViewData.attendees
+    ) {
       return <AttendeesDataError eventId={event.id} />;
     }
 

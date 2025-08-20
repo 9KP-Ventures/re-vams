@@ -1,12 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { AlertTriangle, Home } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader } from "../ui/card";
+import { Button } from "../ui/button";
 import { useEffect } from "react";
 
-export default function QRCodeErrorPage() {
+export default function StudentDataErrorPage() {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -30,11 +30,10 @@ export default function QRCodeErrorPage() {
 
           <div>
             <h1 className="text-xl font-semibold text-foreground mb-2">
-              Unable to Load QR Code
+              Student Data Error
             </h1>
             <p className="text-sm text-muted-foreground">
-              We&apos;re having trouble generating your student QR code at the
-              moment.
+              An unexpected error occurred when loading the student data.
             </p>
           </div>
         </div>
@@ -47,7 +46,7 @@ export default function QRCodeErrorPage() {
               <span className="font-medium">System Error</span>
             </div>
             <p className="text-sm text-white/90">
-              Failed to retrieve your student identification code
+              Failed to retrieve your student information
             </p>
           </CardHeader>
 
@@ -57,12 +56,11 @@ export default function QRCodeErrorPage() {
               <div className="text-center space-y-2">
                 <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto" />
                 <h3 className="font-medium text-muted-foreground">
-                  QR Code Generation Failed
+                  Data Fetching Error
                 </h3>
                 <p className="text-sm text-muted-foreground/80">
-                  There was a problem connecting to our servers or generating
-                  your unique QR code. This could be due to a temporary network
-                  issue or server maintenance.
+                  There was a problem connecting to our servers. This could be
+                  due to a temporary network issue or server maintenance.
                 </p>
               </div>
             </div>
@@ -71,19 +69,8 @@ export default function QRCodeErrorPage() {
             <div className="space-y-3">
               <Button
                 onClick={() => {
-                  window.location.reload(); // Manual reload to trigger loading
-                }}
-                className="w-full transition-all bg-gradient-to-r from-primary/70 to-primary hover:opacity-70"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </Button>
-
-              <Button
-                onClick={() => {
                   router.replace("/students/register");
                 }}
-                variant="outline"
                 className="w-full dark:hover:bg-accent"
               >
                 <Home className="w-4 h-4 mr-2" />
@@ -93,11 +80,9 @@ export default function QRCodeErrorPage() {
 
             {/* Help Text */}
             <div className="bg-muted rounded-lg p-3">
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-xs text-muted-foreground">
                 <strong>Still having trouble?</strong> If this problem persists,
-                please contact the registrar&apos;s office or try again in a few
-                minutes. Your registration information has been saved
-                successfully.
+                please contact any administrator of your organization.
               </p>
             </div>
 

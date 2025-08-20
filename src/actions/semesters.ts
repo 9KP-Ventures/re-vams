@@ -7,7 +7,7 @@ import {
 } from "@/lib/requests/semesters/get-many";
 
 export async function getSemesters(): Promise<
-  GetSemestersDataSuccess["semesters"]
+  GetSemestersDataSuccess | GetSemestersDataError
 > {
   try {
     const origin = await getServerOrigin();
@@ -15,24 +15,25 @@ export async function getSemesters(): Promise<
       `${origin}/api/semesters?sortBy=name&sortOrder=asc`,
       {
         cache: "force-cache",
-        next: { revalidate: 3600 }, // Revalidate every hour
         method: "GET",
       }
     );
 
     if (!response.ok) {
-      const data: GetSemestersDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetSemestersDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetSemestersDataSuccess = await response.json();
-    const { semesters } = data;
-    return semesters;
+    return data;
   } catch (error) {
-    console.log("Error fetching semesters:", error);
-    return [];
+    const errorMessage: GetSemestersDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the semesters: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

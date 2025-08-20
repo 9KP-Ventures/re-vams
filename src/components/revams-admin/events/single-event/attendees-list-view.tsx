@@ -4,12 +4,16 @@ import { getSlotAttendees } from "@/actions/attendees";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { GetSlotAttendeesDataSuccess } from "@/lib/requests/events/attendance-slots/attendees/get-many";
+import {
+  GetSlotAttendeesDataError,
+  GetSlotAttendeesDataSuccess,
+} from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { formatTime } from "@/lib/utils";
 import { Loader2, User2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import AttendeesFilters from "./attendees-filters";
+import { toast } from "sonner";
 
 export default function AttendeesListView({
   attendees: initialAttendees,
@@ -27,6 +31,9 @@ export default function AttendeesListView({
   const [ref, inView] = useInView();
   const [attendees, setAttendees] =
     useState<GetSlotAttendeesDataSuccess["attendees"]>(initialAttendees);
+  const [attendeesError, setAttendeesError] = useState<
+    GetSlotAttendeesDataError["error"] | null
+  >(null);
   const [page, setPage] = useState(1);
 
   const loadingRef = useRef(false);
@@ -44,13 +51,21 @@ export default function AttendeesListView({
     loadingRef.current = true;
 
     const next = page + 1;
-    const newAttendees = await getSlotAttendees(eventId, slotId, params, next);
+    const data = await getSlotAttendees(eventId, slotId, params, next);
 
-    if (newAttendees?.attendees.length) {
+    if ("error" in data) {
+      setAttendees([]);
+      setAttendeesError(data.error);
+      return;
+    }
+
+    const { attendees: newAttendees } = data;
+
+    if (newAttendees.length) {
       setPage(next);
       setAttendees((prev: GetSlotAttendeesDataSuccess["attendees"]) => [
         ...(prev?.length ? prev : []),
-        ...newAttendees.attendees,
+        ...newAttendees,
       ]);
     }
     setTimeout(() => {
@@ -64,6 +79,14 @@ export default function AttendeesListView({
       loadMoreAttendees();
     }
   }, [pagination, inView, loadMoreAttendees]);
+
+  useEffect(() => {
+    if (attendeesError) {
+      toast.error(`Attendees data error: ${attendeesError.code}`, {
+        description: attendeesError.message,
+      });
+    }
+  }, [attendeesError]);
 
   return (
     <div className="mt-6">
@@ -159,8 +182,8 @@ export default function AttendeesListView({
               <User2 className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-center">
-              {params.year_level_id || params.program_id
-                ? "No attendees found with the selected filters."
+              {params.year_level_id || params.program_id || params.search
+                ? "No associated attendees found with the search and filters."
                 : "No attendees recorded for this time slot."}
             </p>
           </CardContent>

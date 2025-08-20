@@ -205,4 +205,8 @@
     background-repeat: no-repeat;
     border: 0;
   }
+
+  .required-field {
+    @apply after:content-['*'] after:text-destructive;
+  }
 }

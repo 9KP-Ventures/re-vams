@@ -7,29 +7,29 @@ import {
 } from "@/lib/requests/year-levels/get";
 
 export async function getYearLevels(): Promise<
-  GetYearLevelsDataSuccess["year_levels"]
+  GetYearLevelsDataSuccess | GetYearLevelsDataError
 > {
   try {
     const origin = await getServerOrigin();
     const response: Response = await fetch(`${origin}/api/year-levels`, {
-      cache: "force-cache",
-      next: { revalidate: 3600 },
       method: "GET",
     });
 
     if (!response.ok) {
-      const data: GetYearLevelsDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetYearLevelsDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetYearLevelsDataSuccess = await response.json();
-    return data["year_levels"];
+    return data;
   } catch (error) {
-    console.error("Error fetching year levels:", error);
-    // Fallback to mock data if endpoint doesn't exist yet
-    return [{ id: -1, name: error }] as GetYearLevelsDataSuccess["year_levels"];
+    const errorMesage: GetYearLevelsDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the year levels: ${error}`,
+      },
+    };
+    return errorMesage;
   }
 }

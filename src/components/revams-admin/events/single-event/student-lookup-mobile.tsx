@@ -16,8 +16,12 @@ import SearchForm from "./student-lookup-search-form";
 import { useEffect, useState } from "react";
 import { useSingleEventParams } from "@/lib/hooks/single-event-params";
 import { getStudentFines } from "@/actions/fines";
-import { GetStudentFinesDataSuccess } from "@/lib/requests/events/fines/get-student-fines";
+import {
+  GetStudentFinesDataError,
+  GetStudentFinesDataSuccess,
+} from "@/lib/requests/events/fines/get-student-fines";
 import { cn, formatAmount } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Inactive state component
 const InactiveState = () => (
@@ -276,6 +280,9 @@ export default function StudentLookupMobile({
   const { studentId } = useSingleEventParams();
   const [studentFinesData, setStudentFinesData] =
     useState<GetStudentFinesDataSuccess | null>(null);
+  const [studentFinesError, setStudentFinesError] = useState<
+    GetStudentFinesDataError["error"] | null
+  >(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch student data
@@ -285,6 +292,13 @@ export default function StudentLookupMobile({
         setLoading(true);
         const data = await getStudentFines(eventId, studentId);
 
+        if ("error" in data) {
+          setStudentFinesError(data.error);
+          setStudentFinesData(null);
+          setLoading(false);
+          return;
+        }
+
         setStudentFinesData(data);
         setLoading(false);
       } else {
@@ -293,6 +307,14 @@ export default function StudentLookupMobile({
     };
     fetchStudentData();
   }, [disabled, eventId, studentId]);
+
+  useEffect(() => {
+    if (studentFinesError) {
+      toast.error(`Student fines data error: ${studentFinesError.code}`, {
+        description: studentFinesError.message,
+      });
+    }
+  }, [studentFinesError]);
 
   // Render the appropriate UI based on state
   if (disabled) {

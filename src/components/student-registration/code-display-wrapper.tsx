@@ -1,6 +1,6 @@
 "use server";
 
-import { getStudentData } from "@/actions/student";
+import { getStudentCode, getStudentData } from "@/actions/student";
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -30,17 +30,24 @@ export default async function CodePageWithData({
   // Fetch student data
   const studentData = await getStudentData(studentId);
 
-  if (studentData === null) {
+  if ("error" in studentData) {
     redirect(`/students/register/code/${studentId}?error=true`);
-    return;
+  }
+
+  const studentCodeData = await getStudentCode(studentId);
+
+  if ("error" in studentCodeData) {
+    redirect(
+      `/students/register/code/${studentId}?error=true&reason=generate_code`
+    );
   }
 
   // Transform to component format
   const transformedData: StudentData = {
-    id: studentData.id,
-    firstName: studentData.first_name,
-    lastName: studentData.last_name,
-    code: studentData.code,
+    id: studentData.student.id,
+    firstName: studentData.student.first_name,
+    lastName: studentData.student.last_name,
+    code: studentCodeData.code,
   };
 
   return <StudentCodeDisplay studentData={transformedData} />;

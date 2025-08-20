@@ -9,7 +9,7 @@ import {
 export async function getStudentFines(
   eventId: number,
   studentId: string
-): Promise<GetStudentFinesDataSuccess | null> {
+): Promise<GetStudentFinesDataSuccess | GetStudentFinesDataError> {
   try {
     const origin = await getServerOrigin();
 
@@ -21,17 +21,20 @@ export async function getStudentFines(
     });
 
     if (!response.ok) {
-      const data: GetStudentFinesDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetStudentFinesDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetStudentFinesDataSuccess = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching student fines:", error);
-    return null;
+    const errorMessage: GetStudentFinesDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching student fines data: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

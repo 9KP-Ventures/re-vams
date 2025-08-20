@@ -12,7 +12,6 @@ import z from "zod";
 const singleEventSearchParamsSchema = z.object({
   student_id: z.string().optional(),
   time_slot: z.coerce.number().optional(),
-  error: z.string().optional(),
   search: z.string().optional(),
   sort: z
     .enum(GET_SLOT_ATTENDEES_SORT_OPTIONS)
@@ -45,10 +44,6 @@ export default async function SingleEventViewPage({
 
   // Extract validated params
   const validatedParams: ValidatedSingleEventParams = result.data;
-
-  if (validatedParams.error) {
-    return <>Error</>;
-  }
 
   return (
     <SingleEventWrapper

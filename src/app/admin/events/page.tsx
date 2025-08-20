@@ -52,10 +52,7 @@ export default async function EventsViewPage({
   if (validatedParams.error) {
     return (
       <div className="px-20 py-16 min-h-dvh flex flex-col justify-between">
-        <div>
-          <EventsHeader />
-          <EventsError errorType={validatedParams.error} className="mt-32" />
-        </div>
+        <EventsError />
       </div>
     );
   }

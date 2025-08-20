@@ -17,7 +17,8 @@ export async function RegistrationFormWithData({
   email?: string | undefined;
 }) {
   // Fetch all data in parallel
-  const { programs, yearLevels } = await getRegistrationData();
+  const { programs: programsData, yearLevels: yearLevelsData } =
+    await getRegistrationData();
 
   return (
     <StudentRegistrationForm
@@ -26,8 +27,8 @@ export async function RegistrationFormWithData({
       middleName={middleName}
       lastName={lastName}
       email={email}
-      programs={programs}
-      yearLevels={yearLevels}
+      programs={"error" in programsData ? [] : programsData}
+      yearLevels={"error" in yearLevelsData ? [] : yearLevelsData}
     />
   );
 }

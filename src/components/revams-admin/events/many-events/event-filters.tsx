@@ -19,7 +19,10 @@ import {
   SortDescIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { GetSemestersDataSuccess } from "@/lib/requests/semesters/get-many";
+import {
+  GetSemestersDataError,
+  GetSemestersDataSuccess,
+} from "@/lib/requests/semesters/get-many";
 import { getSemesters } from "@/actions/semesters";
 import {
   Popover,
@@ -37,6 +40,7 @@ import {
   GetEventsOrderType,
 } from "@/lib/requests/events/get-many";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface StatusOption {
   value: GetEventsStatusType;
@@ -108,6 +112,9 @@ export default function EventsFilters() {
   const [semesters, setSemesters] = useState<
     GetSemestersDataSuccess["semesters"]
   >([]);
+  const [semestersError, setSemestersError] = useState<
+    GetSemestersDataError["error"] | null
+  >(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
 
@@ -131,11 +138,26 @@ export default function EventsFilters() {
   useEffect(() => {
     const fetchSemesters = async () => {
       const data = await getSemesters();
-      setSemesters(data);
+
+      if ("error" in data) {
+        setSemestersError(data.error);
+        setSemesters([]);
+        return;
+      }
+
+      setSemesters(data.semesters);
     };
 
     fetchSemesters();
   }, []);
+
+  useEffect(() => {
+    if (semestersError) {
+      toast.error(`Semesters data error: ${semestersError.code}`, {
+        description: semestersError.message,
+      });
+    }
+  }, [semestersError]);
 
   // Effect to update draft states when URL params change
   useEffect(() => {

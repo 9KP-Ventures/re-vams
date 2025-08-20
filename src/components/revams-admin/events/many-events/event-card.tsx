@@ -1,7 +1,14 @@
 "use client";
 
 import { GetEventsDataSuccess } from "@/lib/requests/events/get-many";
-import { CalendarIcon, ClockIcon, Edit, School, Trash } from "lucide-react";
+import {
+  CalendarIcon,
+  ClockIcon,
+  Edit,
+  Loader2,
+  School,
+  Trash,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function EventCard({
   event,
@@ -38,6 +45,15 @@ export default function EventCard({
 }) {
   const router = useRouter();
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+  const [deletingEvent, setDeletingEvent] = useState(false);
+
+  const deleteEvent = async () => {};
+
+  useEffect(() => {
+    if (deletingEvent) {
+      deleteEvent();
+    }
+  }, [deletingEvent, router]);
 
   return (
     <>
@@ -142,9 +158,18 @@ export default function EventCard({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white hover:bg-destructive/90"
-              onClick={() => setAlertDialogOpen(false)}
+              onClick={() => {
+                setDeletingEvent(true);
+              }}
             >
-              Delete
+              {deletingEvent ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>Delete</>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

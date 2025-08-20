@@ -8,7 +8,7 @@ import { Constants } from "@/app/utils/supabase/types";
 // Schema Definitions
 // -----------------------------
 
-const createEventSchema = z
+export const createEventSchema = z
   .object({
     name: z.string().min(1, "Event name is required and cannot be empty"),
     date: z.string().date("Event date must be a valid date (YYYY-MM-DD)"),
@@ -22,7 +22,7 @@ const createEventSchema = z
       .number()
       .int("Semester ID must be an integer")
       .min(1, "Semester ID is required"),
-    status: z.enum([...Constants.public.Enums.Status] as const),
+    status: z.enum([...Constants.public.Enums.Status] as const, {}),
   })
   .passthrough();
 

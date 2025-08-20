@@ -8,34 +8,31 @@ import {
 
 export async function getMajorsForProgram(
   programId: number
-): Promise<GetProgramMajorsDataSuccess["majors"]> {
+): Promise<GetProgramMajorsDataSuccess | GetProgramMajorsDataError> {
   try {
     const origin = await getServerOrigin();
     const response: Response = await fetch(
       `${origin}/api/programs/${programId}/majors`,
       {
-        cache: "force-cache",
-        next: { revalidate: 3600 },
         method: "GET",
       }
     );
 
     if (!response.ok) {
-      const data: GetProgramMajorsDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(
-        `Failed to fetch majors for program ${programId}: ${error.message}`
-      );
+      const error: GetProgramMajorsDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetProgramMajorsDataSuccess = await response.json();
-    const { majors } = data;
-
-    return majors;
+    return data;
   } catch (error) {
-    console.error(`Error fetching majors`, error);
-    return [];
+    const errorMessage: GetProgramMajorsDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the program majors: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

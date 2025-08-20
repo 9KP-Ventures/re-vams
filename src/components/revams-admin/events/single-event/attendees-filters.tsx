@@ -11,7 +11,10 @@ import {
   GetSlotAttendeesOrderType,
   GetSlotAttendeesSortType,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
-import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
+import {
+  GetProgramsDataError,
+  GetProgramsDataSuccess,
+} from "@/lib/requests/programs/get";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -24,8 +27,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FilterGroup } from "../../../ui/filter-group";
-import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
+import {
+  GetYearLevelsDataError,
+  GetYearLevelsDataSuccess,
+} from "@/lib/requests/year-levels/get";
 import { getYearLevels } from "@/actions/year-levels";
+import { toast } from "sonner";
 
 interface SortOption {
   key: GetSlotAttendeesSortType;
@@ -91,9 +98,16 @@ export default function AttendeesFilters() {
   const [programs, setPrograms] = useState<GetProgramsDataSuccess["programs"]>(
     []
   );
+  const [programsError, setProgramsError] = useState<
+    GetProgramsDataError["error"] | null
+  >(null);
+
   const [yearLevels, setYearLevels] = useState<
     GetYearLevelsDataSuccess["year_levels"]
   >([]);
+  const [yearLevelsError, setYearLevelsError] = useState<
+    GetYearLevelsDataError["error"] | null
+  >(null);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -112,6 +126,19 @@ export default function AttendeesFilters() {
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
 
+  useEffect(() => {
+    if (programsError) {
+      toast.error(`Programs data error: ${programsError.code}`, {
+        description: programsError.message,
+      });
+    }
+    if (yearLevelsError) {
+      toast.error(`Year levels data error: ${yearLevelsError.code}`, {
+        description: yearLevelsError.message,
+      });
+    }
+  }, [programsError, yearLevelsError]);
+
   // Only run this effect on the client
   useEffect(() => {
     setIsMounted(true);
@@ -129,12 +156,28 @@ export default function AttendeesFilters() {
   useEffect(() => {
     const fetchPrograms = async () => {
       const data = await getPrograms();
-      setPrograms(data);
+
+      if ("error" in data) {
+        setProgramsError(data.error);
+        setPrograms([]);
+        return;
+      }
+
+      setPrograms(data.programs);
+      setProgramsError(null);
     };
 
     const fetchYearLevels = async () => {
       const data = await getYearLevels();
-      setYearLevels(data);
+
+      if ("error" in data) {
+        setYearLevelsError(data.error);
+        setYearLevels([]);
+        return;
+      }
+
+      setYearLevels(data.year_levels);
+      setYearLevelsError(null);
     };
 
     fetchPrograms();
@@ -331,7 +374,7 @@ export default function AttendeesFilters() {
                         className={`
                             flex justify-between items-center w-full px-3 py-1.5 rounded-md text-sm cursor-pointer
                             ${
-                              draftFilters.yearLevelId === yearLevel.id
+                              Number(draftFilters.yearLevelId) === yearLevel.id
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "bg-background hover:bg-accent text-foreground"
                             }

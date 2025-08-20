@@ -8,7 +8,7 @@ import {
 
 export async function getAttendanceSlots(
   eventId: number
-): Promise<GetAttendanceSlotsDataSuccess["attendance_slots"] | null> {
+): Promise<GetAttendanceSlotsDataSuccess | GetAttendanceSlotsDataError> {
   try {
     const origin = await getServerOrigin();
 
@@ -19,17 +19,20 @@ export async function getAttendanceSlots(
     });
 
     if (!response.ok) {
-      const data: GetAttendanceSlotsDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetAttendanceSlotsDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetAttendanceSlotsDataSuccess = await response.json();
-    return data["attendance_slots"];
+    return data;
   } catch (error) {
-    console.error(`Error fetching attendance slots:`, error);
-    return null;
+    const errorMessage: GetAttendanceSlotsDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the attendance slots: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }

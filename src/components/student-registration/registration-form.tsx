@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,14 @@ import {
   registerStudent,
   RegistrationFormData,
 } from "@/actions/student-registration";
-import { Tables } from "@/app/utils/supabase/types";
 import { getMajorsForProgram } from "@/actions/majors";
+import {
+  GetProgramMajorsDataError,
+  GetProgramMajorsDataSuccess,
+} from "@/lib/requests/programs/majors/get";
+import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
+import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
+import { toast } from "sonner";
 
 type RegistrationStatus = "idle" | "submitting" | "success" | "error";
 interface StudentRegistrationFormProps {
@@ -34,8 +40,8 @@ interface StudentRegistrationFormProps {
   middleName?: string | undefined;
   lastName?: string | undefined;
   email?: string | undefined;
-  programs: Tables<"programs">[];
-  yearLevels: Tables<"year_levels">[];
+  programs: GetProgramsDataSuccess["programs"];
+  yearLevels: GetYearLevelsDataSuccess["year_levels"];
 }
 
 export default function StudentRegistrationForm({
@@ -61,8 +67,21 @@ export default function StudentRegistrationForm({
     major: null,
   });
 
-  const [majors, setMajors] = useState<Tables<"majors">[]>([]);
+  const [majors, setMajors] = useState<GetProgramMajorsDataSuccess["majors"]>(
+    []
+  );
+  const [majorsError, setMajorsError] = useState<
+    GetProgramMajorsDataError["error"] | null
+  >(null);
   const [loadingMajors, setLoadingMajors] = useState(false);
+
+  useEffect(() => {
+    if (majorsError) {
+      toast.error(`Majors data error: ${majorsError.code}`, {
+        description: majorsError.message,
+      });
+    }
+  }, [majorsError]);
 
   // Handle input changes for text fields
   const handleTextInputChange = (
@@ -118,15 +137,18 @@ export default function StudentRegistrationForm({
 
       // Fetch majors for the selected program
       setLoadingMajors(true);
-      try {
-        const programMajors = await getMajorsForProgram(selectedProgram.id);
-        setMajors(programMajors);
-      } catch (error) {
-        console.error("Error fetching majors:", error);
+      const data = await getMajorsForProgram(selectedProgram.id);
+
+      if ("error" in data) {
+        setMajorsError(data.error);
         setMajors([]);
-      } finally {
         setLoadingMajors(false);
+        setErrorMessage(data.error.message);
+        return;
       }
+
+      setMajors(data.majors);
+      setLoadingMajors(false);
     }
 
     // Clear error

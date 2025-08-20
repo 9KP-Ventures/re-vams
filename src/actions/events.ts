@@ -10,7 +10,7 @@ import { ParamConfig, ParamValue, TransformFunction } from "./types";
 
 export async function getEvents(
   params?: ValidatedEventsParams
-): Promise<GetEventsDataSuccess | null> {
+): Promise<GetEventsDataSuccess | GetEventsDataError> {
   try {
     const origin = await getServerOrigin();
 
@@ -55,18 +55,21 @@ export async function getEvents(
     });
 
     if (!response.ok) {
-      const data: GetEventsDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetEventsDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: GetEventsDataSuccess = await response.json();
     return data;
   } catch (error) {
-    console.error(`Error fetching events:`, error);
-    return null;
+    const errorMessage: GetEventsDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred while fetching the events: ${error}`,
+      },
+    };
+    return errorMessage;
   }
 }
 export interface EventsStats {
