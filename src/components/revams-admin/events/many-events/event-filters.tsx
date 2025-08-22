@@ -404,7 +404,7 @@ export default function EventsFilters() {
                 title="Semester"
                 badgeCount={draftFilters.semesterId ? 1 : 0}
               >
-                <div className="mt-2 max-h-48 overflow-y-auto pr-1">
+                <div className="mt-2 max-h-22 overflow-y-auto pr-1">
                   {semesters.length > 0 ? (
                     <div className="space-y-1">
                       {semesters.map(semester => (
@@ -413,7 +413,7 @@ export default function EventsFilters() {
                           className={`
                             flex justify-between items-center w-full px-3 py-1.5 rounded-md text-sm cursor-pointer
                             ${
-                              draftFilters.semesterId === semester.id
+                              Number(draftFilters.semesterId) === semester.id
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "bg-background hover:bg-accent text-foreground"
                             }
@@ -428,7 +428,7 @@ export default function EventsFilters() {
                           <span className="capitalize">
                             {semester.name || ""}
                           </span>
-                          {draftFilters.semesterId === semester.id && (
+                          {Number(draftFilters.semesterId) === semester.id && (
                             <Check size={14} className="ml-1 text-primary" />
                           )}
                         </div>

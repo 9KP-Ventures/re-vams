@@ -346,7 +346,7 @@ export default function AttendeesFilters() {
                         }
                       >
                         <span className="capitalize">{program.name || ""}</span>
-                        {draftFilters.programId === program.id && (
+                        {Number(draftFilters.programId) === program.id && (
                           <Check size={14} className="ml-1 text-primary" />
                         )}
                       </div>
@@ -389,7 +389,7 @@ export default function AttendeesFilters() {
                         <span className="capitalize">
                           {yearLevel.name || ""}
                         </span>
-                        {draftFilters.yearLevelId === yearLevel.id && (
+                        {Number(draftFilters.yearLevelId) === yearLevel.id && (
                           <Check size={14} className="ml-1 text-primary" />
                         )}
                       </div>

@@ -9,11 +9,24 @@ import {
   GetSlotAttendeesDataSuccess,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { formatTime } from "@/lib/utils";
-import { Loader2, User2 } from "lucide-react";
+import { CheckCheck, Loader2, User2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import AttendeesFilters from "./attendees-filters";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AttendeesListView({
   attendees: initialAttendees,
@@ -36,14 +49,27 @@ export default function AttendeesListView({
   >(null);
   const [page, setPage] = useState(1);
 
+  // Selection mode state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedAttendees, setSelectedAttendees] = useState<Set<string>>(
+    new Set()
+  );
+
   const loadingRef = useRef(false);
+
+  // Reset selection when toggling selection mode off
+  useEffect(() => {
+    if (!selectionMode) {
+      setSelectedAttendees(new Set());
+    }
+  }, [selectionMode]);
 
   useEffect(() => {
     loadingRef.current = false;
   }, [initialAttendees, params.search, params.sort, params.order]);
 
   const loadMoreAttendees = useCallback(async () => {
-    // Return early if already loading or no more pages
+    // Return early if already loading, or no more pages
     if (loadingRef.current || attendees.length >= pagination.total) {
       return;
     }
@@ -78,7 +104,7 @@ export default function AttendeesListView({
       // Load more attendees when the loader comes into view
       loadMoreAttendees();
     }
-  }, [pagination, inView, loadMoreAttendees]);
+  }, [pagination, inView, loadMoreAttendees, selectionMode]);
 
   useEffect(() => {
     if (attendeesError) {
@@ -88,22 +114,215 @@ export default function AttendeesListView({
     }
   }, [attendeesError]);
 
+  // Toggle selection mode
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(prev => !prev);
+  };
+
+  // Handle individual checkbox selection
+  const handleSelectAttendee = (attendeeId: string) => {
+    setSelectedAttendees(prev => {
+      const newSet = new Set(prev);
+
+      if (newSet.has(attendeeId)) {
+        // If already selected, remove it
+        newSet.delete(attendeeId);
+      } else {
+        // If not selected, check if adding would exceed the limit
+        if (newSet.size >= 100) {
+          // Show warning toast if trying to exceed limit
+          toast.warning("Selection limit reached", {
+            description: "You can delete up to 100 attendees only.",
+          });
+          return newSet; // Return unchanged set
+        }
+
+        // Add the attendee to selection
+        newSet.add(attendeeId);
+      }
+
+      return newSet;
+    });
+  };
+
+  // Handle select all checkboxes
+  const handleSelectAll = () => {
+    if (selectedAttendees.size === attendees.length) {
+      // If all are selected, deselect all
+      setSelectedAttendees(new Set());
+    } else {
+      // Otherwise, select all
+
+      // Check if adding all would exceed the 100 limit
+      if (attendees.length > 100) {
+        // Limit selection to up to 100 only
+        toast.warning("Selection limit reached", {
+          description: "You can delete up to 100 attendees only.",
+        });
+
+        // Take only the first 100 attendees
+        const limitedIds = attendees.slice(0, 100).map(a => a.student.id);
+        setSelectedAttendees(new Set(limitedIds));
+      } else {
+        // Select all attendees (within limit)
+        const allIds = attendees.map(a => a.student.id);
+        setSelectedAttendees(new Set(allIds));
+      }
+    }
+  };
+
+  // Handle delete selected attendees
+  const handleDeleteSelected = () => {
+    if (selectedAttendees.size === 0) return;
+
+    // TODO: Apply functionality to attendees bulk deletion
+    toast.success(
+      `${selectedAttendees.size} attendance records marked for deletion`,
+      {
+        description: "API functionality to be implemented.",
+      }
+    );
+
+    // For demo purposes, we'll remove the selected attendees from the UI
+    const remainingAttendees = attendees.filter(
+      a => !selectedAttendees.has(a.student.id)
+    );
+    setAttendees(remainingAttendees);
+    setSelectedAttendees(new Set());
+  };
+
+  // Check if all attendees are selected
+  const allSelected =
+    attendees.length > 0 && selectedAttendees.size === attendees.length;
+  // Check if some (but not all) attendees are selected
+  const someSelected = selectedAttendees.size > 0 && !allSelected;
+
   return (
     <div className="mt-6">
       <div className="flex flex-wrap gap-2 mb-4 items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          Attendees ({pagination.total || 0})
-        </h3>
-        <AttendeesFilters />
+        <div className="flex items-center gap-1">
+          {selectionMode ? (
+            <span
+              aria-label="Selected attendees count"
+              className="text-primary flex gap-2 items-center"
+            >
+              <CheckCheck className="w-4 h-4" />
+              {selectedAttendees.size} selected{" "}
+              {selectedAttendees.size === 1 ? "attendee" : "attendees"}
+            </span>
+          ) : (
+            <h3>
+              There are {pagination.total || 0} total attendees in this slot
+            </h3>
+          )}
+
+          {/* Selection mode toggle button */}
+          {!selectionMode && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={handleToggleSelectionMode}
+              className="flex items-center gap-1.5"
+            >
+              Select
+            </Button>
+          )}
+        </div>
+
+        {selectionMode && (
+          <div aria-label="Selection controls" className="flex gap-2">
+            {!allSelected && (
+              <Button
+                id="select-all"
+                variant="link"
+                onClick={handleSelectAll}
+                aria-label="Select all attendees"
+              >
+                Select all
+              </Button>
+            )}
+
+            {/* Selection mode toggle button */}
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleToggleSelectionMode}
+              className="flex items-center gap-1.5"
+            >
+              Cancel
+            </Button>
+
+            {/* Delete button - only visible in selection mode */}
+            {selectionMode && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    disabled={selectedAttendees.size === 0}
+                    className="flex items-center gap-1.5"
+                  >
+                    Delete Selected
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete {selectedAttendees.size}{" "}
+                      attendance{" "}
+                      {selectedAttendees.size === 1 ? "record" : "records"}?
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-white hover:bg-destructive/90"
+                      onClick={handleDeleteSelected}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        )}
+
+        {/* Only show filters when not in selection mode */}
+        {!selectionMode && <AttendeesFilters />}
       </div>
 
       {/* Table-style list with headers */}
       {attendees.length > 0 ? (
         <div className="rounded-md border overflow-x-auto">
-          <div className="min-w-[850px] lg:min-w-[1050px] xl:min-w-[1230px] 2xl:min-w-[1500px]">
+          <div
+            className={`min-w-[850px] lg:min-w-[1050px] xl:min-w-[1230px] 2xl:min-w-[1500px] ${
+              selectionMode ? "relative" : ""
+            }`}
+          >
             {/* Set minimum width to ensure content doesn't compress */}
             {/* Table headers */}
-            <div className="grid grid-cols-[1fr_1fr_0.5fr] lg:grid-cols-[1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[1fr_1fr_1fr_1fr_0.5fr_0.5fr] gap-3 bg-muted/40 p-3 font-medium text-muted-foreground">
+            <div
+              className={`grid ${
+                selectionMode
+                  ? "grid-cols-[40px_1fr_1fr_0.5fr] lg:grid-cols-[40px_1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[40px_1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[40px_1fr_1fr_1fr_1fr_0.5fr_0.5fr]"
+                  : "grid-cols-[1fr_1fr_0.5fr] lg:grid-cols-[1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[1fr_1fr_1fr_1fr_0.5fr_0.5fr]"
+              } gap-3 bg-muted/40 p-3 font-medium text-muted-foreground`}
+            >
+              {/* Select all checkbox - only visible in selection mode */}
+              {selectionMode && (
+                <div className="flex items-center justify-center">
+                  <Checkbox
+                    id="select-all"
+                    checked={allSelected || (someSelected && "indeterminate")}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all attendees"
+                  />
+                </div>
+              )}
+
               <div>Name</div>
               <div className="hidden 2xl:block">Degree</div>
               <div className="">Program</div>
@@ -111,12 +330,33 @@ export default function AttendeesListView({
               <div className="hidden lg:block">Year</div>
               <div className="text-right">Time Attended</div>
             </div>
+
             {/* Table content */}
             <div className="divide-y">
               <ul>
                 {attendees.map(attendee => (
                   <li key={attendee.student.id}>
-                    <div className="grid grid-cols-[1fr_1fr_0.5fr] lg:grid-cols-[1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[1fr_1fr_1fr_1fr_0.5fr_0.5fr] gap-3 px-3 py-3 md:py-6 items-center hover:bg-muted/10 transition-colors">
+                    <div
+                      className={`grid ${
+                        selectionMode
+                          ? "grid-cols-[40px_1fr_1fr_0.5fr] lg:grid-cols-[40px_1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[40px_1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[40px_1fr_1fr_1fr_1fr_0.5fr_0.5fr]"
+                          : "grid-cols-[1fr_1fr_0.5fr] lg:grid-cols-[1fr_1fr_0.5fr_0.5fr] xl:grid-cols-[1fr_1fr_1fr_0.5fr_0.5fr] 2xl:grid-cols-[1fr_1fr_1fr_1fr_0.5fr_0.5fr]"
+                      } gap-3 px-3 py-3 md:py-6 items-center hover:bg-secondary/10 dark:hover:bg-primary/10 transition-colors`}
+                    >
+                      {/* Checkbox - only visible in selection mode */}
+                      {selectionMode && (
+                        <div className="flex items-center justify-center">
+                          <Checkbox
+                            id={`select-${attendee.student.id}`}
+                            checked={selectedAttendees.has(attendee.student.id)}
+                            onCheckedChange={() =>
+                              handleSelectAttendee(attendee.student.id)
+                            }
+                            aria-label={`Select ${attendee.student.first_name} ${attendee.student.last_name}`}
+                          />
+                        </div>
+                      )}
+
                       {/* Name column with ID badge and email */}
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -190,7 +430,7 @@ export default function AttendeesListView({
         </Card>
       )}
 
-      {/* Show current page info (will be replaced by infinite scroll) */}
+      {/* Show current page info */}
       {attendees.length > 0 && (
         <div className="my-8 text-sm text-center text-muted-foreground">
           Showing {attendees.length} of {pagination.total} attendees

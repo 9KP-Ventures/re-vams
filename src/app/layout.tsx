@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Serif, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -14,12 +14,6 @@ export const metadata: Metadata = {
   title: "Next.js and Supabase Starter Kit",
   description: "The fastest way to build apps with Next.js and Supabase",
 };
-
-const notoSerif = Noto_Serif({
-  variable: "--font-noto-serif",
-  display: "swap",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -40,9 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${notoSerif.className} ${geistMono.className} ${inter.className} antialiased`}
-      >
+      <body className={`${geistMono.className} ${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

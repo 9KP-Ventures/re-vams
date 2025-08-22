@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function EventCard({
   event,
@@ -47,8 +48,12 @@ export default function EventCard({
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [deletingEvent, setDeletingEvent] = useState(false);
 
-  const deleteEvent = async () => {};
+  const deleteEvent = async () => {
+    setDeletingEvent(false);
+    toast.info("Event deleted successfully.");
+  };
 
+  // TODO: Implement actual delete
   useEffect(() => {
     if (deletingEvent) {
       deleteEvent();
