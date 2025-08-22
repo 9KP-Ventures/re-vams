@@ -199,7 +199,7 @@ export default function AttendeesListView({
 
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap gap-2 mb-4 items-center justify-between">
+      <div className="flex flex-wrap flex-col items-start sm:flex-row gap-2 mb-4 sm:items-center justify-between">
         <div className="flex items-center gap-1">
           {selectionMode ? (
             <span
@@ -211,9 +211,15 @@ export default function AttendeesListView({
               {selectedAttendees.size === 1 ? "attendee" : "attendees"}
             </span>
           ) : (
-            <h3>
-              There are {pagination.total || 0} total attendees in this slot
-            </h3>
+            <div>
+              <h3 className="hidden md:block">
+                There are {pagination.total || 0} total attendees in this slot
+              </h3>
+
+              <h3 className="block: md:hidden">
+                Attendees ({pagination.total || 0})
+              </h3>
+            </div>
           )}
 
           {/* Selection mode toggle button */}
@@ -230,13 +236,17 @@ export default function AttendeesListView({
         </div>
 
         {selectionMode && (
-          <div aria-label="Selection controls" className="flex gap-2">
+          <div
+            aria-label="Selection controls"
+            className="w-full grid grid-cols-2 sm:grid-cols-none sm:flex gap-2"
+          >
             {!allSelected && (
               <Button
                 id="select-all"
                 variant="link"
                 onClick={handleSelectAll}
                 aria-label="Select all attendees"
+                className="hidden sm:block"
               >
                 Select all
               </Button>
@@ -247,7 +257,7 @@ export default function AttendeesListView({
               variant="outline"
               size="lg"
               onClick={handleToggleSelectionMode}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 w-full sm:w-fit"
             >
               Cancel
             </Button>
@@ -260,9 +270,10 @@ export default function AttendeesListView({
                     variant="destructive"
                     size="lg"
                     disabled={selectedAttendees.size === 0}
-                    className="flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 w-full sm:w-fit"
                   >
-                    Delete Selected
+                    <span className="hidden md:block">Delete Selected</span>
+                    <span className="block md:hidden">Delete</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>

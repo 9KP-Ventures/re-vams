@@ -229,6 +229,12 @@ export default function AttendeesFilters() {
     return `Sort: ${sortOption.label}`;
   };
 
+  const getSortButtonLabelMobile = () => {
+    const sortOption = SORT_OPTIONS.find(option => option.key === sort);
+    if (!sortOption) return "Sort";
+    return `${sortOption.label}`;
+  };
+
   // Update a single draft filter
   const updateDraftFilter = (key: string, value: string) => {
     setDraftFilters(prev => ({
@@ -269,14 +275,14 @@ export default function AttendeesFilters() {
     draftSort.order !== (order || "asc");
 
   return (
-    <div className="flex gap-2">
+    <div className="w-full grid grid-cols-[0.5fr_1fr] sm:flex sm:grid-cols-none gap-2">
       {/* Filter Popover */}
       <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             size="lg"
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 w-full sm:w-fit"
           >
             <FilterIcon size={16} />
             <span>Filters</span>
@@ -430,10 +436,13 @@ export default function AttendeesFilters() {
           <Button
             variant="outline"
             size="lg"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-fit truncate"
           >
             {(order || "desc") === "asc" ? <SortAscIcon /> : <SortDescIcon />}
-            <span>{getSortButtonLabel()}</span>
+            <span className="hidden sm:block">{getSortButtonLabel()}</span>
+            <span className="block sm:hidden">
+              {getSortButtonLabelMobile()}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0 mr-4" align="start">
