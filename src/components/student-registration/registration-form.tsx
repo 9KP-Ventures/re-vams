@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,81 +13,71 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  UserPlus,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  User,
-} from "lucide-react";
-import {
-  registerStudent,
-  RegistrationFormData,
-} from "@/actions/student-registration";
+import { UserPlus, Loader2, User } from "lucide-react";
+import { registerStudent } from "@/actions/student-registration";
 import { getMajorsForProgram } from "@/actions/majors";
-import {
-  GetProgramMajorsDataError,
-  GetProgramMajorsDataSuccess,
-} from "@/lib/requests/programs/majors/get";
+import { GetProgramMajorsDataSuccess } from "@/lib/requests/programs/majors/get";
 import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
 import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
 import { toast } from "sonner";
+import {
+  CreateStudentData,
+  createStudentSchema,
+} from "@/lib/requests/students/create";
+import { ValidatedStudentRegistrationParamsSchema } from "@/app/students/register/[name]/page";
+import { cn } from "@/lib/utils";
 
-type RegistrationStatus = "idle" | "submitting" | "success" | "error";
+type RegistrationStatus = "idle" | "submitting" | "success";
 interface StudentRegistrationFormProps {
-  id: string;
-  firstName?: string | undefined;
-  middleName?: string | undefined;
-  lastName?: string | undefined;
-  email?: string | undefined;
+  params: ValidatedStudentRegistrationParamsSchema;
   programs: GetProgramsDataSuccess["programs"];
   yearLevels: GetYearLevelsDataSuccess["year_levels"];
 }
 
+type CreateFormData = {
+  id?: string;
+  first_name?: string;
+  middle_name?: string | null | undefined;
+  last_name?: string;
+  email_address?: string;
+  degree_id?: number;
+  program_id?: number;
+  year_level_id?: number;
+  major_id?: number | null | undefined;
+};
+
 export default function StudentRegistrationForm({
-  id,
-  firstName,
-  middleName,
-  lastName,
-  email,
+  params,
   programs,
   yearLevels,
 }: StudentRegistrationFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<RegistrationStatus>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [formData, setFormData] = useState<RegistrationFormData>({
-    idNumber: id,
-    firstName: firstName || "",
-    middleName: middleName || "",
-    lastName: lastName || "",
-    email: email || "",
-    program: null,
-    yearLevel: null,
-    major: null,
+  const [formData, setFormData] = useState<CreateFormData>({
+    id: params.student_id,
+    first_name: params.first_name?.toUpperCase(),
+    middle_name: params.middle_name?.toUpperCase(),
+    last_name: params.last_name?.toUpperCase(),
+    email_address: params.email_address,
+    degree_id: 1,
+    program_id: params.program_id,
+    major_id: params.major_id,
+    year_level_id: params.year_level_id,
   });
+
+  // Add state to track field errors
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
 
   const [majors, setMajors] = useState<GetProgramMajorsDataSuccess["majors"]>(
     []
   );
-  const [majorsError, setMajorsError] = useState<
-    GetProgramMajorsDataError["error"] | null
-  >(null);
   const [loadingMajors, setLoadingMajors] = useState(false);
-
-  useEffect(() => {
-    if (majorsError) {
-      toast.error(`Majors data error: ${majorsError.code}`, {
-        description: majorsError.message,
-      });
-    }
-  }, [majorsError]);
 
   // Handle input changes for text fields
   const handleTextInputChange = (
     field: keyof Pick<
-      RegistrationFormData,
-      "firstName" | "middleName" | "lastName" | "email"
+      CreateFormData,
+      "first_name" | "middle_name" | "last_name" | "email_address"
     >,
     value: string
   ) => {
@@ -95,16 +85,16 @@ export default function StudentRegistrationForm({
 
     // Handle name fields
     if (
-      field === "firstName" ||
-      field === "lastName" ||
-      field === "middleName"
+      field === "first_name" ||
+      field === "last_name" ||
+      field === "middle_name"
     ) {
       // Auto-capitalize as user types
       processedValue = value.toUpperCase();
     }
 
     // Handle email field
-    if (field === "email") {
+    if (field === "email_address") {
       // Keep email lowercase
       processedValue = value.toLowerCase();
     }
@@ -114,165 +104,147 @@ export default function StudentRegistrationForm({
       [field]: processedValue,
     }));
 
-    // Clear error when user starts typing
-    if (errorMessage) {
-      setErrorMessage(null);
-      setStatus("idle");
+    // Clear error for this field when user edits it
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [field]: false,
+      }));
     }
   };
 
-  // Handle program selection
+  // Modify other handlers to clear errors too
   const handleProgramChange = async (programId: string) => {
-    const selectedProgram = programs.find(p => p.id.toString() === programId);
+    const selectedProgram = programs.find(p => `${p.id}` === programId);
 
     if (selectedProgram) {
       setFormData(prev => ({
         ...prev,
-        program: {
-          id: selectedProgram.id,
-          name: selectedProgram.name,
-        },
-        major: null, // Reset major when program changes
+        program_id: selectedProgram.id,
+        major_id: null, // Reset major when program changes
       }));
+
+      // Clear program_id error
+      if (fieldErrors.program_id) {
+        setFieldErrors(prev => ({
+          ...prev,
+          program_id: false,
+        }));
+      }
 
       // Fetch majors for the selected program
       setLoadingMajors(true);
       const data = await getMajorsForProgram(selectedProgram.id);
 
       if ("error" in data) {
-        setMajorsError(data.error);
+        toast.error(`Majors data error: ${data.error.code}`, {
+          description: data.error.message,
+        });
         setMajors([]);
         setLoadingMajors(false);
-        setErrorMessage(data.error.message);
         return;
       }
 
       setMajors(data.majors);
       setLoadingMajors(false);
     }
-
-    // Clear error
-    if (errorMessage) {
-      setErrorMessage(null);
-      setStatus("idle");
-    }
   };
 
-  // Handle year level selection
   const handleYearLevelChange = (yearLevelId: string) => {
-    const selectedYearLevel = yearLevels.find(
-      y => y.id.toString() === yearLevelId
-    );
+    const selectedYearLevel = yearLevels.find(y => `${y.id}` === yearLevelId);
 
     if (selectedYearLevel) {
       setFormData(prev => ({
         ...prev,
-        yearLevel: {
-          id: selectedYearLevel.id,
-          name: selectedYearLevel.name,
-        },
+        year_level_id: selectedYearLevel.id,
       }));
-    }
 
-    // Clear error
-    if (errorMessage) {
-      setErrorMessage(null);
-      setStatus("idle");
+      // Clear year_level_id error
+      if (fieldErrors.year_level_id) {
+        setFieldErrors(prev => ({
+          ...prev,
+          year_level_id: false,
+        }));
+      }
     }
   };
 
-  // Handle major selection
   const handleMajorChange = (majorId: string) => {
-    const selectedMajor = majors.find(m => m.id.toString() === majorId);
+    const selectedMajor = majors.find(m => `${m.id}` === majorId);
 
     if (selectedMajor) {
       setFormData(prev => ({
         ...prev,
-        major: {
-          id: selectedMajor.id,
-          name: selectedMajor.name,
-          program_id: formData.program?.id ?? null,
-        },
+        major_id: selectedMajor.id,
       }));
+
+      // Clear major_id error
+      if (fieldErrors.major_id) {
+        setFieldErrors(prev => ({
+          ...prev,
+          major_id: false,
+        }));
+      }
     }
-
-    // Clear error
-    if (errorMessage) {
-      setErrorMessage(null);
-      setStatus("idle");
-    }
-  };
-
-  const validateForm = (): string | null => {
-    if (!formData.firstName.trim()) return "First name is required";
-    if (!formData.lastName.trim()) return "Last name is required";
-    if (!formData.program) return "Please select a degree program";
-    if (!formData.yearLevel) return "Please select a year level";
-    if (!formData.email.trim()) return "Email is required";
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(formData.email.trim()))
-      return "Please enter a valid email address";
-
-    return null;
   };
 
   const handleRegister = async () => {
-    const validationError = validateForm();
-    if (validationError) {
-      setErrorMessage(validationError);
-      setStatus("error");
+    setStatus("submitting");
+    // Reset all field errors
+    setFieldErrors({});
+
+    const result = createStudentSchema.safeParse(formData);
+
+    if (!result.success) {
+      // Track which fields have errors
+      const newFieldErrors: Record<string, boolean> = {};
+
+      // Access issues array from Zod error
+      if (result.error.issues && result.error.issues.length > 0) {
+        // Loop through all validation errors and show each one
+        result.error.issues.forEach(issue => {
+          // Mark this field as having an error
+          const fieldPath = issue.path.join(".");
+          newFieldErrors[fieldPath] = true;
+
+          toast.error("Registration form error", {
+            description: issue.message,
+          });
+        });
+      } else {
+        // Fallback for general error message
+        toast.error("Registration form failed", {
+          description: result.error.message || "Please check your form input",
+        });
+      }
+
+      // Update field errors state
+      setFieldErrors(newFieldErrors);
+      setStatus("idle");
       return;
     }
 
-    setStatus("submitting");
-    setErrorMessage(null);
+    const validatedData: CreateStudentData = result.data;
 
-    try {
-      const result = await registerStudent(formData);
+    const data = await registerStudent(validatedData);
 
-      if (result.success && !result.error && result.verified) {
-        setStatus("success");
-
-        // Cookie is automatically set if successfully registered
-        setTimeout(() => {
-          router.push(`/students/register/code/${formData.idNumber}`);
-        }, 1500);
-      } else {
-        setStatus("error");
-        setErrorMessage(result.error || "Registration failed.");
-      }
-    } catch (error) {
-      setStatus("error");
-      setErrorMessage(`${error}`);
+    if ("error" in data) {
+      toast.error("Registration submission failed", {
+        description: data.error.message,
+      });
+      setStatus("idle");
+      return;
     }
-  };
 
-  const getStatusDisplay = () => {
-    switch (status) {
-      case "success":
-        return (
-          <div className="flex items-center space-x-2 text-primary p-3 bg-primary/10 rounded-lg border border-primary">
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">
-              Registration successful! Redirecting...
-            </span>
-          </div>
-        );
+    toast.success("Registration successful", {
+      description: "Redirecting you to your attendance code.",
+    });
+    setStatus("success");
 
-      case "error":
-        return (
-          <div className="flex items-center space-x-2 text-destructive p-3 bg-destructive/10 rounded-lg border border-destructive">
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">
-              {errorMessage || "Registration failed"}
-            </span>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+    // Cookie is automatically set if successfully registered
+    setTimeout(() => {
+      router.push(`/students/register/code/${data.student.id}`);
+    }, 1500);
   };
 
   const getButtonText = () => {
@@ -287,6 +259,13 @@ export default function StudentRegistrationForm({
   };
 
   const isFormDisabled = status === "submitting" || status === "success";
+
+  // Helper function to get input class based on error state
+  const getInputClass = (fieldName: string) => {
+    return fieldErrors[fieldName]
+      ? "border-destructive focus-visible:ring-destructive"
+      : "";
+  };
 
   return (
     <>
@@ -331,7 +310,7 @@ export default function StudentRegistrationForm({
               <Input
                 id="id-number"
                 type="text"
-                value={formData.idNumber}
+                value={formData.id}
                 disabled
                 className="bg-muted font-mono text-center"
               />
@@ -346,11 +325,15 @@ export default function StudentRegistrationForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder={`${formData.idNumber}@vsu.edu.ph`}
-                  value={formData.email}
-                  onChange={e => handleTextInputChange("email", e.target.value)}
+                  placeholder={`${formData.id}@vsu.edu.ph`}
+                  value={formData.email_address || ""}
+                  onChange={e =>
+                    handleTextInputChange("email_address", e.target.value)
+                  }
                   disabled={isFormDisabled}
-                  className="placeholder:text-muted-foreground/70"
+                  className={`placeholder:text-muted-foreground/70 ${getInputClass(
+                    "email_address"
+                  )}`}
                 />
               </div>
             </div>
@@ -365,45 +348,51 @@ export default function StudentRegistrationForm({
                   id="first-name"
                   type="text"
                   placeholder="First Name"
-                  value={formData.firstName}
+                  value={formData.first_name || ""}
                   onChange={e =>
-                    handleTextInputChange("firstName", e.target.value)
+                    handleTextInputChange("first_name", e.target.value)
                   }
                   disabled={isFormDisabled}
+                  className={getInputClass("first_name")}
                 />
               </div>
 
               <Input
                 type="text"
                 placeholder="Middle Name (Optional)"
-                value={formData.middleName}
+                value={formData.middle_name || ""}
                 onChange={e =>
-                  handleTextInputChange("middleName", e.target.value)
+                  handleTextInputChange("middle_name", e.target.value)
                 }
                 disabled={isFormDisabled}
-                className="text-muted-foreground"
+                className={`text-muted-foreground ${getInputClass(
+                  "middle_name"
+                )}`}
               />
 
               <Input
                 type="text"
                 placeholder="Last Name"
-                value={formData.lastName}
+                value={formData.last_name || ""}
                 onChange={e =>
-                  handleTextInputChange("lastName", e.target.value)
+                  handleTextInputChange("last_name", e.target.value)
                 }
                 disabled={isFormDisabled}
+                className={getInputClass("last_name")}
               />
             </div>
 
-            {/* Degree Program */}
+            {/* Program */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Degree Program</Label>
+              <Label className="text-sm font-medium">Program</Label>
               <Select
-                value={formData.program?.id.toString() || ""}
+                value={`${formData.program_id || ""}`}
                 onValueChange={handleProgramChange}
                 disabled={isFormDisabled}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger
+                  className={`w-full ${getInputClass("program_id")}`}
+                >
                   <SelectValue placeholder="Choose option..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -420,11 +409,13 @@ export default function StudentRegistrationForm({
             <div className="space-y-2">
               <Label className="text-sm font-medium">Year Level</Label>
               <Select
-                value={formData.yearLevel?.id.toString() || ""}
+                value={`${formData.year_level_id || ""}`}
                 onValueChange={handleYearLevelChange}
                 disabled={isFormDisabled}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger
+                  className={`w-full ${getInputClass("year_level_id")}`}
+                >
                   <SelectValue placeholder="Choose option..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -438,16 +429,16 @@ export default function StudentRegistrationForm({
             </div>
 
             {/* Major (Conditional) */}
-            {formData.program && (
+            {formData.program_id && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Major</Label>
                 <Select
-                  value={formData.major?.id.toString() || ""}
+                  value={`${formData.major_id || ""}`}
                   onValueChange={handleMajorChange}
                   disabled={isFormDisabled || loadingMajors}
                 >
                   <SelectTrigger
-                    className="w-full"
+                    className={`w-full ${getInputClass("major_id")}`}
                     disabled={majors.length === 0}
                   >
                     <SelectValue
@@ -471,16 +462,15 @@ export default function StudentRegistrationForm({
               </div>
             )}
 
-            {/* Status Display */}
-            {status !== "idle" && status !== "submitting" && (
-              <div className="space-y-3">{getStatusDisplay()}</div>
-            )}
-
             {/* Register Button */}
             <Button
               onClick={handleRegister}
-              disabled={isFormDisabled}
-              className="w-full transition-all bg-gradient-to-r from-primary/70 to-primary hover:opacity-70 disabled:cursor-not-allowed"
+              disabled={isFormDisabled || loadingMajors}
+              className={cn(
+                loadingMajors && "cursor-wait",
+                isFormDisabled && "cursor-not-allowed",
+                "w-full transition-all bg-gradient-to-r from-primary/70 to-primary hover:opacity-70 disabled:pointer-events-auto"
+              )}
             >
               {status === "submitting" ? (
                 <div className="flex items-center space-x-2">

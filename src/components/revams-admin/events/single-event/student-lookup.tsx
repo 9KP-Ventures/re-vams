@@ -17,10 +17,7 @@ import SearchForm from "./student-lookup-search-form";
 import { useEffect, useState } from "react";
 import { useSingleEventParams } from "@/lib/hooks/single-event-params";
 import { getStudentFines } from "@/actions/fines";
-import {
-  GetStudentFinesDataError,
-  GetStudentFinesDataSuccess,
-} from "@/lib/requests/events/fines/get-student-fines";
+import { GetStudentFinesDataSuccess } from "@/lib/requests/events/fines/get-student-fines";
 import { cn, formatAmount } from "@/lib/utils";
 import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
 import { toast } from "sonner";
@@ -289,9 +286,6 @@ export default function StudentLookup({
   const { studentId } = useSingleEventParams();
   const [studentFinesData, setStudentFinesData] =
     useState<GetStudentFinesDataSuccess | null>(null);
-  const [studentFinesError, setStudentFinesError] = useState<
-    GetStudentFinesDataError["error"] | null
-  >(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Only fetch student data if event is active and we have a student ID
@@ -302,7 +296,9 @@ export default function StudentLookup({
         const data = await getStudentFines(event.id, studentId);
 
         if ("error" in data) {
-          setStudentFinesError(data.error);
+          toast.error(`Student fines data error: ${data.error.code}`, {
+            description: data.error.message,
+          });
           setStudentFinesData(null);
           setLoading(false);
           return;
@@ -316,14 +312,6 @@ export default function StudentLookup({
     };
     fetchStudentData();
   }, [disabled, event, studentId]);
-
-  useEffect(() => {
-    if (studentFinesError) {
-      toast.error(`Student fines data error: ${studentFinesError.code}`, {
-        description: studentFinesError.message,
-      });
-    }
-  }, [studentFinesError]);
 
   return (
     <Card className={cn(!disabled ? "" : "opacity-90 bg-muted/30", "py-4")}>

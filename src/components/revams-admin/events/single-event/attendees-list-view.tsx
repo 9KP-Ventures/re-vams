@@ -4,10 +4,7 @@ import { getSlotAttendees } from "@/actions/attendees";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  GetSlotAttendeesDataError,
-  GetSlotAttendeesDataSuccess,
-} from "@/lib/requests/events/attendance-slots/attendees/get-many";
+import { GetSlotAttendeesDataSuccess } from "@/lib/requests/events/attendance-slots/attendees/get-many";
 import { formatTime } from "@/lib/utils";
 import { CheckCheck, Loader2, User2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import AddAttendeeButton from "./add-attendee-button";
 
 export default function AttendeesListView({
   attendees: initialAttendees,
@@ -44,9 +42,6 @@ export default function AttendeesListView({
   const [ref, inView] = useInView();
   const [attendees, setAttendees] =
     useState<GetSlotAttendeesDataSuccess["attendees"]>(initialAttendees);
-  const [attendeesError, setAttendeesError] = useState<
-    GetSlotAttendeesDataError["error"] | null
-  >(null);
   const [page, setPage] = useState(1);
 
   // Selection mode state
@@ -80,8 +75,10 @@ export default function AttendeesListView({
     const data = await getSlotAttendees(eventId, slotId, params, next);
 
     if ("error" in data) {
+      toast.error(`Attendees data error: ${data.error.code}`, {
+        description: data.error.message,
+      });
       setAttendees([]);
-      setAttendeesError(data.error);
       return;
     }
 
@@ -105,14 +102,6 @@ export default function AttendeesListView({
       loadMoreAttendees();
     }
   }, [pagination, inView, loadMoreAttendees, selectionMode]);
-
-  useEffect(() => {
-    if (attendeesError) {
-      toast.error(`Attendees data error: ${attendeesError.code}`, {
-        description: attendeesError.message,
-      });
-    }
-  }, [attendeesError]);
 
   // Toggle selection mode
   const handleToggleSelectionMode = () => {
@@ -199,7 +188,8 @@ export default function AttendeesListView({
 
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap flex-col items-start sm:flex-row gap-2 mb-4 sm:items-center justify-between">
+      <AddAttendeeButton />
+      <div className="flex flex-wrap gap-2 mb-4 justify-between">
         <div className="flex items-center gap-1">
           {selectionMode ? (
             <span
@@ -238,7 +228,7 @@ export default function AttendeesListView({
         {selectionMode && (
           <div
             aria-label="Selection controls"
-            className="w-full grid grid-cols-2 sm:grid-cols-none sm:flex gap-2"
+            className="w-full sm:w-fit grid grid-cols-2 sm:grid-cols-none sm:flex gap-2"
           >
             {!allSelected && (
               <Button

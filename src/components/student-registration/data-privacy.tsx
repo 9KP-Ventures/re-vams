@@ -87,7 +87,7 @@ export default function PrivacyNotice() {
 
   const handleAccept = () => {
     if (hasConsented && allSectionsOpened) {
-      router.push("/students/register/check?accepted-policy=true");
+      router.push("/students/register/check?accepted_policy=true");
     }
   };
 

@@ -8,6 +8,24 @@ import { RegistrationFormWithData } from "@/components/student-registration/regi
 import VerifyStudentIdentity from "@/components/student-registration/verify-registration";
 import { redirect, RedirectType } from "next/navigation";
 import { Suspense } from "react";
+import z from "zod";
+
+const studentRegistrationParamsSchema = z.object({
+  student_id: z.string().optional(),
+  first_name: z.string().optional(),
+  middle_name: z.string().optional(),
+  last_name: z.string().optional(),
+  email_address: z.string().email().optional(),
+  degree_id: z.coerce.number().optional(),
+  program_id: z.coerce.number().optional(),
+  major_id: z.coerce.number().optional(),
+  year_level_id: z.coerce.number().optional(),
+  accepted_policy: z.coerce.boolean().optional(),
+});
+
+export type ValidatedStudentRegistrationParamsSchema = z.infer<
+  typeof studentRegistrationParamsSchema
+>;
 
 export default async function RegistrationPage({
   params,
@@ -18,25 +36,23 @@ export default async function RegistrationPage({
 }) {
   const { name } = await params;
 
-  const acceptedPrivacyNotice = (await searchParams)["accepted-policy"];
-  const accepted: boolean =
-    acceptedPrivacyNotice !== undefined && acceptedPrivacyNotice === "true";
+  const result = studentRegistrationParamsSchema.safeParse(await searchParams);
 
-  const studentId = (await searchParams)["student-id"];
+  if (!result.success) {
+    return redirect("/students/register");
+  }
+
+  const validatedParams: ValidatedStudentRegistrationParamsSchema = result.data;
+
+  const studentId = validatedParams.student_id;
   const pattern = /^\d{2}-[1-9]-\d{5}$/;
 
-  const firstName = (await searchParams)["first-name"];
-  const middleName = (await searchParams)["middle-name"];
-  const lastName = (await searchParams)["last-name"];
-  const email = (await searchParams)["email"];
-
   if (
-    (name !== "data-privacy" && !accepted) ||
+    (name !== "data-privacy" && !validatedParams.accepted_policy) ||
     ((name === "verify" || name === "form") &&
       (studentId === undefined || studentId === "" || !pattern.test(studentId)))
   ) {
-    redirect("/students/register", RedirectType.replace);
-    return <></>;
+    return redirect("/students/register", RedirectType.replace);
   }
 
   return (
@@ -45,13 +61,7 @@ export default async function RegistrationPage({
       {name === "check" && <RegistrationCheck />}
       {name === "form" && (
         <Suspense fallback={<FormLoadingSkeleton />}>
-          <RegistrationFormWithData
-            studentId={studentId!}
-            firstName={firstName}
-            middleName={middleName}
-            lastName={lastName}
-            email={email}
-          />
+          <RegistrationFormWithData params={validatedParams} />
         </Suspense>
       )}
       {name === "verify" && <VerifyStudentIdentity id={studentId!} />}

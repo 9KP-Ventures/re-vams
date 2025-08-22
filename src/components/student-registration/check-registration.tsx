@@ -68,7 +68,7 @@ export default function RegistrationCheck() {
       // Redirect to verify page after a short delay
       setTimeout(() => {
         router.push(
-          `/students/register/verify?accepted-policy=true&student-id=${idNumber}`
+          `/students/register/verify?accepted_policy=true&student_id=${idNumber}`
         );
       }, 1000);
     } else {
@@ -76,7 +76,7 @@ export default function RegistrationCheck() {
       // Redirect to registration form after a short delay
       setTimeout(() => {
         router.push(
-          `/students/register/form?accepted-policy=true&student-id=${idNumber}`
+          `/students/register/form?accepted_policy=true&student_id=${idNumber}`
         );
       }, 2000);
     }

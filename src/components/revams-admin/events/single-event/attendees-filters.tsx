@@ -11,10 +11,7 @@ import {
   GetSlotAttendeesOrderType,
   GetSlotAttendeesSortType,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
-import {
-  GetProgramsDataError,
-  GetProgramsDataSuccess,
-} from "@/lib/requests/programs/get";
+import { GetProgramsDataSuccess } from "@/lib/requests/programs/get";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -27,10 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FilterGroup } from "../../../ui/filter-group";
-import {
-  GetYearLevelsDataError,
-  GetYearLevelsDataSuccess,
-} from "@/lib/requests/year-levels/get";
+import { GetYearLevelsDataSuccess } from "@/lib/requests/year-levels/get";
 import { getYearLevels } from "@/actions/year-levels";
 import { toast } from "sonner";
 
@@ -98,16 +92,9 @@ export default function AttendeesFilters() {
   const [programs, setPrograms] = useState<GetProgramsDataSuccess["programs"]>(
     []
   );
-  const [programsError, setProgramsError] = useState<
-    GetProgramsDataError["error"] | null
-  >(null);
-
   const [yearLevels, setYearLevels] = useState<
     GetYearLevelsDataSuccess["year_levels"]
   >([]);
-  const [yearLevelsError, setYearLevelsError] = useState<
-    GetYearLevelsDataError["error"] | null
-  >(null);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -125,19 +112,6 @@ export default function AttendeesFilters() {
 
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
-
-  useEffect(() => {
-    if (programsError) {
-      toast.error(`Programs data error: ${programsError.code}`, {
-        description: programsError.message,
-      });
-    }
-    if (yearLevelsError) {
-      toast.error(`Year levels data error: ${yearLevelsError.code}`, {
-        description: yearLevelsError.message,
-      });
-    }
-  }, [programsError, yearLevelsError]);
 
   // Only run this effect on the client
   useEffect(() => {
@@ -158,26 +132,28 @@ export default function AttendeesFilters() {
       const data = await getPrograms();
 
       if ("error" in data) {
-        setProgramsError(data.error);
+        toast.error(`Programs data error: ${data.error.code}`, {
+          description: data.error.message,
+        });
         setPrograms([]);
         return;
       }
 
       setPrograms(data.programs);
-      setProgramsError(null);
     };
 
     const fetchYearLevels = async () => {
       const data = await getYearLevels();
 
       if ("error" in data) {
-        setYearLevelsError(data.error);
+        toast.error(`Year levels data error: ${data.error.code}`, {
+          description: data.error.message,
+        });
         setYearLevels([]);
         return;
       }
 
       setYearLevels(data.year_levels);
-      setYearLevelsError(null);
     };
 
     fetchPrograms();
@@ -275,7 +251,7 @@ export default function AttendeesFilters() {
     draftSort.order !== (order || "asc");
 
   return (
-    <div className="w-full grid grid-cols-[0.5fr_1fr] sm:flex sm:grid-cols-none gap-2">
+    <div className="w-full sm:w-fit grid grid-cols-[0.5fr_1fr] sm:flex sm:grid-cols-none gap-2">
       {/* Filter Popover */}
       <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <PopoverTrigger asChild>

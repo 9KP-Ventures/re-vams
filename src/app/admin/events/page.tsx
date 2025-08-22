@@ -21,7 +21,7 @@ const eventSearchParamsSchema = z.object({
   search: z.string().optional(),
   sort: z.enum(GET_EVENTS_SORT_OPTIONS).optional().default("date"),
   order: z.enum(GET_EVENTS_SORT_ORDERS).optional().default("desc"),
-  error: z.string().optional(),
+  error: z.coerce.boolean().optional(),
   status: z
     .enum([...Constants.public.Enums.Status, ""] as const)
     .optional()

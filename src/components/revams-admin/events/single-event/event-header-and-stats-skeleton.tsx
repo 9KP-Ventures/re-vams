@@ -11,7 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import Link from "next/link";
-import { Edit, DownloadCloud, QrCode, Search } from "lucide-react";
+import { Edit, DownloadCloud, Search } from "lucide-react";
 
 export default function SingleEventHeaderSkeleton() {
   return (
@@ -29,7 +29,7 @@ export default function SingleEventHeaderSkeleton() {
       <div className="flex flex-col gap-4 mb-1">
         <div className="w-full">
           {/* Title skeleton */}
-          <Skeleton className="h-9 w-3/4 mb-4" />
+          <Skeleton className="h-11 w-3/4 mb-2" />
 
           {/* Event details skeleton */}
           <div aria-label="Event details" className="mt-2 flex space-x-2">
@@ -61,12 +61,12 @@ export default function SingleEventHeaderSkeleton() {
         </div>
 
         {/* Action buttons skeleton */}
-        <div className="flex flex-wrap gap-2">
+        <div className="w-full sm:w-fit grid grid-cols-2 grid-rows-2 sm:grid-rows-1 sm:grid-cols-3 gap-2">
           {/* Search button skeleton */}
           <Button
             variant="outline"
             size="lg"
-            className="flex lg:hidden"
+            className="flex lg:hidden order-3 sm:order-1 col-span-2 sm:col-span-1"
             disabled
           >
             <Search />
@@ -79,14 +79,8 @@ export default function SingleEventHeaderSkeleton() {
             Edit
           </Button>
 
-          {/* QR button skeleton */}
-          <Button variant="outline" size="lg" disabled>
-            <QrCode />
-            Show QR
-          </Button>
-
           {/* Export button skeleton */}
-          <Button className="w-26" size="lg" disabled>
+          <Button className="order-1 sm:order-3" size="lg" disabled>
             <DownloadCloud />
             Export
           </Button>

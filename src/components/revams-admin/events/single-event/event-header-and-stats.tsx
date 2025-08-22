@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { GetEventDataSuccess } from "@/lib/requests/events/get+delete";
-import { Circle, DownloadCloud, Edit, QrCode, Search, X } from "lucide-react";
+import { Circle, DownloadCloud, Edit, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -82,11 +82,15 @@ export default function SingleEventHeader({
           </Breadcrumb>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="w-full sm:w-fit grid grid-cols-2 grid-rows-2 sm:grid-rows-1 sm:grid-cols-3 gap-2">
           {/* Search Popover for mobile */}
           <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="lg" className="flex lg:hidden">
+              <Button
+                variant="outline"
+                size="lg"
+                className="flex lg:hidden order-3 sm:order-1 col-span-2 sm:col-span-1"
+              >
                 <Search />
                 Search
               </Button>
@@ -133,18 +137,7 @@ export default function SingleEventHeader({
           </Button>
 
           <Button
-            variant="outline"
-            size="lg"
-            disabled={
-              event.status === "upcoming" || event.status === "completed"
-            }
-          >
-            <QrCode />
-            Show QR
-          </Button>
-
-          <Button
-            className="w-26"
+            className="order-1 sm:order-3"
             size="lg"
             disabled={event.status === "upcoming"}
           >

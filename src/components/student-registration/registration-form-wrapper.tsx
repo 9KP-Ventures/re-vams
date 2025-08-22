@@ -2,19 +2,12 @@
 
 import { getRegistrationData } from "@/actions/student-registration";
 import StudentRegistrationForm from "./registration-form";
+import { ValidatedStudentRegistrationParamsSchema } from "@/app/students/register/[name]/page";
 
 export async function RegistrationFormWithData({
-  studentId,
-  firstName,
-  middleName,
-  lastName,
-  email,
+  params,
 }: {
-  studentId: string;
-  firstName?: string | undefined;
-  middleName?: string | undefined;
-  lastName?: string | undefined;
-  email?: string | undefined;
+  params: ValidatedStudentRegistrationParamsSchema;
 }) {
   // Fetch all data in parallel
   const { programs: programsData, yearLevels: yearLevelsData } =
@@ -22,11 +15,7 @@ export async function RegistrationFormWithData({
 
   return (
     <StudentRegistrationForm
-      id={studentId}
-      firstName={firstName}
-      middleName={middleName}
-      lastName={lastName}
-      email={email}
+      params={params}
       programs={"error" in programsData ? [] : programsData}
       yearLevels={"error" in yearLevelsData ? [] : yearLevelsData}
     />

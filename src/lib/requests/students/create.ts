@@ -7,29 +7,59 @@ import { GetStudentDataSuccess } from "./get+delete";
 // Schema Definitions
 // -----------------------------
 
-const createStudentSchema = z
+export const createStudentSchema = z
   .object({
-    id: z.string().min(1, "Student ID is required and must be a string"),
+    id: z
+      .string({
+        required_error: "Student ID is required",
+      })
+      .min(1, "Student ID cannot be empty"),
+
     program_id: z
-      .number()
+      .number({
+        required_error: "Program is required",
+      })
       .int("Program ID must be an integer")
-      .min(1, "Program ID is required"),
+      .min(1, "Program ID must be positive"),
+
     major_id: z
       .number()
       .int("Major ID must be an integer")
       .optional()
       .nullable(),
+
     year_level_id: z
-      .number()
-      .int("Year ID must be an integer")
-      .min(1, "Year ID is required"),
+      .number({
+        required_error: "Year level is required",
+      })
+      .int("Year level must be an integer")
+      .min(1, "Year level must be positive"),
+
     degree_id: z
-      .number()
+      .number({
+        required_error: "Degree is required",
+      })
       .int("Degree ID must be an integer")
-      .min(1, "Degree ID is required"),
-    email_address: z.string().email("Invalid email address format"),
-    first_name: z.string().min(1, "First name is required"),
-    last_name: z.string().min(1, "Last name is required"),
+      .min(1, "Degree ID must be positive"),
+
+    email_address: z
+      .string({
+        required_error: "Email address is required",
+      })
+      .email("Invalid email address format"),
+
+    first_name: z
+      .string({
+        required_error: "First name is required",
+      })
+      .min(1, "First name cannot be empty"),
+
+    last_name: z
+      .string({
+        required_error: "Last name is required",
+      })
+      .min(1, "Last name cannot be empty"),
+
     middle_name: z.string().nullable().optional(),
   })
   .passthrough();

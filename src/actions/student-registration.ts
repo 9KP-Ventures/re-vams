@@ -4,7 +4,6 @@ import { signToken, StudentVerificationPayload } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { getPrograms } from "./programs";
 import { getYearLevels } from "./year-levels";
-import { Tables } from "@/app/utils/supabase/types";
 import {
   CreateStudentData,
   CreateStudentDataError,
@@ -23,34 +22,6 @@ import {
   GetYearLevelsDataError,
   GetYearLevelsDataSuccess,
 } from "@/lib/requests/year-levels/get";
-
-export type RegistrationFormData = {
-  idNumber: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  email: string;
-  program: Tables<"programs"> | null;
-  yearLevel: Tables<"year_levels"> | null;
-  major: Tables<"majors"> | null;
-};
-
-type RegistrationResult = {
-  success: boolean;
-  error?: string;
-  verified?: boolean;
-};
-
-const validateRegistrationData = (
-  formData: RegistrationFormData
-): string | null => {
-  if (!formData.firstName.trim()) return "First name is required";
-  if (!formData.lastName.trim()) return "Last name is required";
-  if (!formData.program) return "Degree program is required";
-  if (!formData.yearLevel) return "Year level is required";
-  if (!formData.idNumber.trim()) return "Student ID is required";
-  return null;
-};
 
 const setVerificationCookie = async (
   id: string,
@@ -84,11 +55,9 @@ export const verifyStudentIdByLastName = async (
     });
 
     if (!response.ok) {
-      const data: GetStudentDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetStudentDataError = await response.json();
+      console.error(error);
+      return false;
     }
 
     const data: GetStudentDataSuccess = await response.json();
@@ -109,7 +78,7 @@ export const verifyStudentIdByLastName = async (
   }
 };
 
-export const checkStudentIdIfExists = async (id: string) => {
+export const checkStudentIdIfExists = async (id: string): Promise<boolean> => {
   try {
     const origin = await getServerOrigin();
     const response: Response = await fetch(`${origin}/api/students/${id}`, {
@@ -117,11 +86,9 @@ export const checkStudentIdIfExists = async (id: string) => {
     });
 
     if (!response.ok) {
-      const data: GetStudentDataError = await response.json();
-      const { error } = data;
-
-      console.log(error);
-      throw new Error(`${error.message}`);
+      const error: GetStudentDataError = await response.json();
+      console.error(error);
+      return false;
     }
 
     const data: GetStudentDataSuccess = await response.json();
@@ -140,56 +107,37 @@ export const checkStudentIdIfExists = async (id: string) => {
 };
 
 export const registerStudent = async (
-  formData: RegistrationFormData
-): Promise<RegistrationResult> => {
+  formData: CreateStudentData
+): Promise<CreateStudentDataSuccess | CreateStudentDataError> => {
   try {
-    // Validate form data
-    const validationError = validateRegistrationData(formData);
-    if (validationError) {
-      return { success: false, error: validationError };
-    }
-
     const origin = await getServerOrigin();
+    console.log(JSON.stringify(formData));
     const response: Response = await fetch(`${origin}/api/students`, {
       method: "POST",
-      body: JSON.stringify({
-        id: formData.idNumber,
-        first_name: formData.firstName.trim(),
-        middle_name: formData.middleName.trim(),
-        last_name: formData.lastName.trim(),
-        email_address: formData.email.trim(),
-        program_id: formData.program!.id,
-        year_level_id: formData.yearLevel!.id,
-        major_id: formData.major?.id,
-        degree_id: 1,
-      } as CreateStudentData),
+      body: JSON.stringify(formData),
     });
 
     if (!response.ok) {
-      const data: CreateStudentDataError = await response.json();
-      const { error } = data;
-      throw new Error(`${error.message}`);
+      const error: CreateStudentDataError = await response.json();
+      console.error(error);
+      return error;
     }
 
     const data: CreateStudentDataSuccess = await response.json();
     const { student } = data;
 
     // After successful registration, verify the student for cookie setting
-    const verified = await verifyStudentIdByLastName(
-      student["id"],
-      student["last_name"]
-    );
+    await verifyStudentIdByLastName(student["id"], student["last_name"]);
 
-    return {
-      success: true,
-      verified,
-    };
+    return data;
   } catch (error) {
-    console.error("Registration error:", error);
-    return {
-      success: false,
-      error: `${error}`,
+    const errorMessage: CreateStudentDataError = {
+      error: {
+        code: 500,
+        message: `An unexpected error occurred when creating student data: ${error}`,
+      },
     };
+    return errorMessage;
   }
 };
 

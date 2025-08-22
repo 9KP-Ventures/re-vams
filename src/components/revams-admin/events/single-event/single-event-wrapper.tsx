@@ -20,18 +20,12 @@ import {
   GetEventDataError,
   GetEventDataSuccess,
 } from "@/lib/requests/events/get+delete";
-import {
-  GetAttendanceSlotsDataError,
-  GetAttendanceSlotsDataSuccess,
-} from "@/lib/requests/events/attendance-slots/get-many";
+import { GetAttendanceSlotsDataSuccess } from "@/lib/requests/events/attendance-slots/get-many";
 import {
   GetSlotAttendeesDataError,
   GetSlotAttendeesDataSuccess,
 } from "@/lib/requests/events/attendance-slots/attendees/get-many";
-import {
-  GetAttendanceSlotDataError,
-  GetAttendanceSlotDataSuccess,
-} from "@/lib/requests/events/attendance-slots/get+delete";
+import { GetAttendanceSlotDataSuccess } from "@/lib/requests/events/attendance-slots/get+delete";
 import { ValidatedSingleEventParams } from "@/app/admin/events/[id]/page";
 import SingleEventHeader from "./event-header-and-stats";
 import MainEventViewPageSkeleton from "./event-view-skeleton";
@@ -64,9 +58,6 @@ export default function SingleEventWrapper({
   const [slots, setSlots] = useState<
     GetAttendanceSlotsDataSuccess["attendance_slots"]
   >([]);
-  const [slotsError, setSlotsError] = useState<
-    GetAttendanceSlotsDataError["error"] | null
-  >(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -80,9 +71,6 @@ export default function SingleEventWrapper({
     slotInfo: null,
     loading: true,
   });
-  const [slotInfoError, setSlotInfoError] = useState<
-    GetAttendanceSlotDataError["error"] | null
-  >(null);
   const [attendeesError, setAttendeesError] = useState<
     GetSlotAttendeesDataError["error"] | null
   >(null);
@@ -113,7 +101,9 @@ export default function SingleEventWrapper({
 
         if ("error" in slotsData) {
           setSlots([]);
-          setSlotsError(slotsData.error);
+          toast.error(`Event slots data error: ${slotsData.error.code}`, {
+            description: slotsData.error.message,
+          });
           setLoading(false);
           return;
         }
@@ -144,7 +134,9 @@ export default function SingleEventWrapper({
           slotInfo: null,
           loading: false,
         });
-        setSlotInfoError(slotData.error);
+        toast.error(`Time slot data error: ${slotData.error.code}`, {
+          description: slotData.error.message,
+        });
         return;
       }
 
@@ -167,20 +159,6 @@ export default function SingleEventWrapper({
 
     fetchAttendeeViewData();
   }, [eventId, isAttendeeView, event, validatedParams]);
-
-  useEffect(() => {
-    if (slotsError) {
-      toast.error(`Event slots data error: ${slotsError.code}`, {
-        description: slotsError.message,
-      });
-    }
-
-    if (slotInfoError) {
-      toast.error(`Time slot data error: ${slotInfoError.code}`, {
-        description: slotInfoError.message,
-      });
-    }
-  }, [slotInfoError, slotsError]);
 
   // Show loading state while fetching initial data
   if (loading) {

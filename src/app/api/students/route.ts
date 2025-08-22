@@ -159,8 +159,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify that program_id and degree_id exist and major
-    const [programCheck, degreeCheck] = await Promise.all([
+    // Verify that program_id and degree_id exist and major and year level
+    const [programCheck, degreeCheck, yearLevelCheck] = await Promise.all([
       supabase
         .from("programs")
         .select("id")
@@ -171,8 +171,14 @@ export async function POST(request: NextRequest) {
         .select("id")
         .eq("id", studentData.degree_id)
         .single(),
+      supabase
+        .from("year_levels")
+        .select("id")
+        .eq("id", studentData.year_level_id)
+        .single(),
     ]);
 
+    // Check if required relations exist
     if (programCheck.error) {
       return NextResponse.json(
         {
@@ -197,6 +203,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (yearLevelCheck.error) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 400,
+            message: `Year level with ID ${studentData.year_level_id} does not exist.`,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check major separately only if it's provided
+    if (studentData.major_id !== null && studentData.major_id !== undefined) {
+      const majorCheck = await supabase
+        .from("majors")
+        .select("id")
+        .eq("id", studentData.major_id)
+        .single();
+
+      if (majorCheck.error) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 400,
+              message: `Major with ID ${studentData.major_id} does not exist.`,
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
     // Create the student with corrected select query
     const { data, error } = await supabase
       .from("students")
