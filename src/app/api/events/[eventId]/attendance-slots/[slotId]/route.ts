@@ -106,7 +106,6 @@ export async function PATCH(
         trigger_time,
         type,
         fine_amount,
-        attendance_code_expiration,
         events!event_id(name)
       `)
       .eq("id", customRequest.getSlotId())
