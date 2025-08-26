@@ -14,38 +14,8 @@ export type Database = {
   }
   public: {
     Tables: {
-      attendance_codes: {
-        Row: {
-          attendance_slot_id: number
-          created_at: string
-          id: number
-          link_text: string
-        }
-        Insert: {
-          attendance_slot_id: number
-          created_at?: string
-          id?: number
-          link_text?: string
-        }
-        Update: {
-          attendance_slot_id?: number
-          created_at?: string
-          id?: number
-          link_text?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_codes_attendance_slot_id_fkey"
-            columns: ["attendance_slot_id"]
-            isOneToOne: false
-            referencedRelation: "attendance_slots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       attendance_records: {
         Row: {
-          attendance_type: Database["public"]["Enums"]["Attendance_Type"]
           created_at: string
           id: number
           recorded_time: string
@@ -53,7 +23,6 @@ export type Database = {
           student_id: string
         }
         Insert: {
-          attendance_type: Database["public"]["Enums"]["Attendance_Type"]
           created_at?: string
           id?: number
           recorded_time: string
@@ -61,7 +30,6 @@ export type Database = {
           student_id: string
         }
         Update: {
-          attendance_type?: Database["public"]["Enums"]["Attendance_Type"]
           created_at?: string
           id?: number
           recorded_time?: string
@@ -87,7 +55,6 @@ export type Database = {
       }
       attendance_slots: {
         Row: {
-          attendance_code_expiration: string
           created_at: string
           event_id: number
           fine_amount: number
@@ -97,7 +64,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          attendance_code_expiration: string
           created_at?: string
           event_id: number
           fine_amount: number
@@ -107,7 +73,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          attendance_code_expiration?: string
           created_at?: string
           event_id?: number
           fine_amount?: number
@@ -430,6 +395,98 @@ export type Database = {
           },
         ]
       }
+      pre_registered_students: {
+        Row: {
+          created_at: string
+          degree_id: number
+          email_address: string
+          first_name: string
+          last_name: string
+          major_id: number | null
+          middle_name: string | null
+          program_id: number
+          student_id: string
+          ticket_id: string
+          year_level_id: number
+        }
+        Insert: {
+          created_at?: string
+          degree_id: number
+          email_address?: string
+          first_name?: string
+          last_name?: string
+          major_id?: number | null
+          middle_name?: string | null
+          program_id: number
+          student_id: string
+          ticket_id: string
+          year_level_id: number
+        }
+        Update: {
+          created_at?: string
+          degree_id?: number
+          email_address?: string
+          first_name?: string
+          last_name?: string
+          major_id?: number | null
+          middle_name?: string | null
+          program_id?: number
+          student_id?: string
+          ticket_id?: string
+          year_level_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_registered_students_degree_id_fkey"
+            columns: ["degree_id"]
+            isOneToOne: false
+            referencedRelation: "degrees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_registered_students_major_id_fkey"
+            columns: ["major_id"]
+            isOneToOne: false
+            referencedRelation: "majors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_registered_students_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_registered_students_year_level_id_fkey"
+            columns: ["year_level_id"]
+            isOneToOne: false
+            referencedRelation: "year_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           id: number
@@ -598,7 +655,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_event_with_attendance_slots: {
+        Args: {
+          attendance_slots?: Json
+          custom_email_message: string
+          custom_email_subject: string
+          event_date: string
+          event_name: string
+          event_status?: string
+          organization_id: number
+          semester_id: number
+        }
+        Returns: {
+          attendance_slots_data: Json
+          event_data: Json
+          event_id: number
+          message: string
+        }[]
+      }
     }
     Enums: {
       Attendance_Type: "TIME_IN" | "TIME_OUT"
