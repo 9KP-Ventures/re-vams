@@ -8,7 +8,6 @@ const createAttendanceSlotSchema = z.object({
   trigger_time: z.string().time(), // "08:00" format
   type: z.enum(["TIME_IN", "TIME_OUT"]),
   fine_amount: z.number().min(0),
-  attendance_code_expiration: z.string().time(), // "08:00" format
 });
 
 export type CreateAttendanceSlotData = z.infer<
@@ -101,7 +100,6 @@ export class CreateAttendanceSlotRequest extends BaseRequest<CreateAttendanceSlo
       trigger_time: data.trigger_time,
       type: data.type,
       fine_amount: data.fine_amount,
-      attendance_code_expiration: data.attendance_code_expiration,
     };
   }
 
