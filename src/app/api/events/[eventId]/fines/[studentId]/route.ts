@@ -102,7 +102,6 @@ export async function GET(
         `
         id,
         slot_id,
-        attendance_type,
         recorded_time,
         created_at
       `

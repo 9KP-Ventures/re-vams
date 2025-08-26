@@ -9,7 +9,6 @@ const createAttendeeSchema = z.object({
   recorded_time: z
     .string()
     .regex(/^\d{2}:\d{2}:\d{2}$/, "Invalid time format (expected HH:MM:SS)"),
-  attendance_type: z.enum(["TIME_IN", "TIME_OUT"]),
 });
 
 export type CreateAttendeeData = z.infer<typeof createAttendeeSchema>;
@@ -100,7 +99,6 @@ export class CreateAttendeeRequest extends FormRequest<CreateAttendeeData> {
     return {
       student_id: data.student_id,
       slot_id: data.slot_id,
-      attendance_type: data.attendance_type,
       recorded_time: data.recorded_time,
     };
   }

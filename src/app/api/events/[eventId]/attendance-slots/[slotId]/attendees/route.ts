@@ -45,7 +45,6 @@ export async function GET(
         `
         id,
         recorded_time,
-        attendance_type,
         created_at,
         students!inner(
           *,
@@ -57,7 +56,6 @@ export async function GET(
       `
       )
       .eq("slot_id", customRequest.getSlotId())
-      .eq("attendance_type", attendanceSlot.type)
       .range(
         customRequest.getOffset(),
         customRequest.getOffset() + customRequest.getLimit() - 1
@@ -124,8 +122,7 @@ export async function GET(
   `,
         { count: "exact" }
       )
-      .eq("slot_id", customRequest.getSlotId())
-      .eq("attendance_type", attendanceSlot.type);
+      .eq("slot_id", customRequest.getSlotId());
 
     // Apply the SAME filters as the main query
     if (customRequest.getSearch()) {
@@ -154,7 +151,6 @@ export async function GET(
         const attendanceRecord = {
           id: record.id,
           recorded_time: record.recorded_time,
-          attendance_type: record.attendance_type,
           created_at: record.created_at,
         };
 
@@ -194,7 +190,6 @@ export async function GET(
         slot_info: {
           slot_id: attendanceSlot.id,
           event_id: attendanceSlot.event_id,
-          attendance_type: attendanceSlot.type,
           trigger_time: attendanceSlot.trigger_time,
         },
       },
@@ -275,7 +270,6 @@ export async function POST(
       .select("id")
       .eq("student_id", attendanceData.student_id)
       .eq("slot_id", attendanceData.slot_id)
-      .eq("attendance_type", attendanceData.attendance_type)
       .single();
 
     if (existingRecord) {

@@ -8,8 +8,7 @@ const updateAttendeeSchema = z.object({
   recorded_time: z
     .string()
     .regex(/^\d{2}:\d{2}:\d{2}$/, "Invalid time format (expected HH:MM:SS)").optional(),
-  attendance_type: z.enum(["TIME_IN", "TIME_OUT"]).optional(),
-}).refine(data => data.recorded_time || data.attendance_type, {
+}).refine(data => data.recorded_time, {
   message: "At least one field must be provided for update",
 });
 
@@ -102,7 +101,6 @@ export class UpdateAttendeeRequest extends FormRequest<UpdateAttendeeData> {
     const updateData: Partial<Tables<"attendance_records">> = {};
     
     if (data.recorded_time) updateData.recorded_time = data.recorded_time;
-    if (data.attendance_type) updateData.attendance_type = data.attendance_type;
     
     return updateData;
   }

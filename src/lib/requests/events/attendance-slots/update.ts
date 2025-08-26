@@ -8,9 +8,8 @@ const updateAttendanceSlotSchema = z.object({
   trigger_time: z.string().time().optional(),
   type: z.enum(["TIME_IN", "TIME_OUT"]).optional(),
   fine_amount: z.number().min(0).optional(),
-  attendance_code_expiration: z.string().time().optional(),
 }).refine(data => 
-  data.trigger_time || data.type || data.fine_amount !== undefined || data.attendance_code_expiration, {
+  data.trigger_time || data.type || data.fine_amount !== undefined, {
   message: "At least one field must be provided for update",
 });
 
@@ -103,7 +102,6 @@ export class UpdateAttendanceSlotRequest extends FormRequest<UpdateAttendanceSlo
     if (data.trigger_time) updateData.trigger_time = data.trigger_time;
     if (data.type) updateData.type = data.type;
     if (data.fine_amount !== undefined) updateData.fine_amount = data.fine_amount;
-    if (data.attendance_code_expiration) updateData.attendance_code_expiration = data.attendance_code_expiration;
     
     return updateData;
   }
