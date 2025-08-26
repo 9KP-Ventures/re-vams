@@ -46,7 +46,6 @@ export async function PATCH(
         id,
         student_id,
         slot_id,
-        attendance_type,
         recorded_time,
         created_at,
         students!attendance_records_student_id_fkey(first_name, last_name)
@@ -77,7 +76,6 @@ export async function PATCH(
         id,
         student_id,
         slot_id,
-        attendance_type,
         recorded_time,
         created_at,
         students!attendance_records_student_id_fkey(first_name, last_name)
@@ -164,7 +162,6 @@ export async function GET(
           id,
           student_id,
           slot_id,
-          attendance_type,
           recorded_time,
           students!attendance_records_student_id_fkey(
             first_name,
