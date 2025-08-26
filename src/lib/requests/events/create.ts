@@ -45,7 +45,9 @@ export const createEventSchema = z
   >>;
     message?: string;
   };
-  export type CreateEventDataError = {  code: number; message: string  };
+  export type CreateEventDataError = {
+    error: { code: number; message: string };
+  };
 
 // -----------------------------
 // CreateEventRequest Class

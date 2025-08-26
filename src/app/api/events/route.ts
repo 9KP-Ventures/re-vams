@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
         {
           error: {
             code: 400,
-            message: error.message,
+            message: error.error.message,
           },
         },
         { status: 400 }
