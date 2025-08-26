@@ -2,6 +2,8 @@ import { createClient } from "@/app/utils/supabase/server";
 import { GetEventsRequest } from "@/lib/requests/events/get-many";
 import { CreateEventRequest } from "@/lib/requests/events/create";
 import { NextRequest, NextResponse } from "next/server";
+import { CreateEventDataError } from "@/lib/requests/events/create";
+import { Tables } from "@/app/utils/supabase/types";
 
 // GET /api/events - List events with pagination and filtering
 export async function GET(request: NextRequest) {
@@ -150,7 +152,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/events - Create a new event
+// POST /api/events - Create a new event with attendance slots
 export async function POST(request: NextRequest) {
   const customRequest = new CreateEventRequest(request);
   const validationError = await customRequest.validate();
@@ -161,90 +163,67 @@ export async function POST(request: NextRequest) {
 
   try {
     const eventData = customRequest.getEventData();
-
-    // Database operation
     const supabase = await createClient();
 
-    // Verify that organization_id exists
-    const { data: organization, error: orgError } = await supabase
-      .from("organizations")
-      .select("id")
-      .eq("id", eventData.organization_id)
-      .single();
+    // Extract attendance_slots from request body if provided
+    const attendanceSlots = customRequest.getAttendanceSlots();
 
-    if (orgError || !organization) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 404,
-            message: `Organization with ID '${eventData.organization_id}' not found.`,
-          },
-        },
-        { status: 404 }
-      );
-    }
+    type dbSuccess = {
+      event: Tables<"events">;
+      attendance_slots: Tables<"attendance_slots">;
+      length?: number;
+    };
 
-    // Verify that organization_id exists
-    const { data: semester, error: semError } = await supabase
-      .from("semesters")
-      .select("id")
-      .eq("id", eventData.semester_id)
-      .single();
+    // Call the database function with proper typing
+    const { data, error } = await supabase.rpc('create_event_with_attendance_slots', {
+      p_name: eventData.name,
+      p_date: eventData.date,
+      p_custom_email_subject: eventData.custom_email_subject || "custom email subject",
+      p_custom_email_message: eventData.custom_email_message || "custome email message",
+      p_organization_id: eventData.organization_id,
+      p_semester_id: eventData.semester_id,
+      p_status: eventData.status || "upcoming",
+      p_attendance_slots: attendanceSlots
+    }) as { data:dbSuccess  | null; error: CreateEventDataError | null};
 
-    if (semError || !semester) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 404,
-            message: `Semester with ID '${eventData.semester_id}' not found.`,
-          },
-        },
-        { status: 404 }
-      );
-    }
-
-    // Create the event
-    const { data: newEvent, error: createError } = await supabase
-      .from("events")
-      .insert(eventData)
-      .select(
-        `
-        *,
-        organizations!organization_id(
-          id,
-          name
-        ),
-        semesters!semester_id(
-          id,
-          name
-        )
-      `
-      )
-      .single();
-
-    if (createError) {
-      console.error("Database error:", createError);
+    if (error) {
+      console.error("Database function error:", error);
       return NextResponse.json(
         {
           error: {
             code: 400,
-            message: createError.message,
+            message: error.message,
           },
         },
         { status: 400 }
       );
     }
 
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 500,
+            message: "No data returned from database function",
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    // Extract the results from the function
+    console.log(data);
+
+
+    
     return NextResponse.json(
       {
-        event: Object.fromEntries(
-          Object.entries(newEvent).sort(([keyA], [keyB]) =>
-            keyA.localeCompare(keyB)
-          )
-        ),
+        event: data.event,
+        attendance_slots: data.attendance_slots, 
       },
       { status: 201 }
     );
+
   } catch (e) {
     console.error("Route error:", e);
     return NextResponse.json(

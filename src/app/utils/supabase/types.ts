@@ -656,28 +656,35 @@ export type Database = {
     }
     Functions: {
       create_event_with_attendance_slots: {
-        Args: {
-          attendance_slots?: Json
-          custom_email_message: string
-          custom_email_subject: string
-          event_date: string
-          event_name: string
-          event_status?: string
-          organization_id: number
-          semester_id: number
-        }
-        Returns: {
-          attendance_slots_data: Json
-          event_data: Json
-          event_id: number
-          message: string
-        }[]
+        Args:
+          | {
+              p_attendance_slots?: Json
+              p_custom_email_message: string
+              p_custom_email_subject: string
+              p_date: string
+              p_name: string
+              p_organization_id: number
+              p_semester_id: number
+              p_status?: Database["public"]["Enums"]["status"]
+            }
+          | {
+              p_attendance_slots?: Json
+              p_custom_email_message: string
+              p_custom_email_subject: string
+              p_date: string
+              p_name: string
+              p_organization_id: number
+              p_semester_id: number
+              p_status?: string
+            }
+        Returns: Json
       }
     }
     Enums: {
       Attendance_Type: "TIME_IN" | "TIME_OUT"
       Payable_Type: "fee" | "fine"
       Payment_Status: "pending" | "partially_paid" | "paid" | "overdue"
+      status: "upcoming" | "ongoing" | "completed"
       Status: "upcoming" | "on_going" | "completed"
       User_Roles: "admin" | "non_admin" | "student" | "super"
     }
@@ -810,6 +817,7 @@ export const Constants = {
       Attendance_Type: ["TIME_IN", "TIME_OUT"],
       Payable_Type: ["fee", "fine"],
       Payment_Status: ["pending", "partially_paid", "paid", "overdue"],
+      status: ["upcoming", "ongoing", "completed"],
       Status: ["upcoming", "on_going", "completed"],
       User_Roles: ["admin", "non_admin", "student", "super"],
     },
