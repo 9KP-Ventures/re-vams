@@ -2,7 +2,7 @@ import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { BaseRequest } from "../base-request";
 import { GetEventDataSuccess } from "./get+delete";
-import { Constants } from "@/app/utils/supabase/types";
+import { Constants, Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
@@ -15,6 +15,8 @@ export const GET_EVENTS_SORT_OPTIONS = [
   "organization_id",
 ] as const;
 export const GET_EVENTS_SORT_ORDERS = ["asc", "desc"] as const;
+export const GET_EVENTS_INCLUDE_OPTIONS = ["attendance-slots"] as const;
+
 
 const getEventsSchema = z.object({
   page: z.coerce.number().int().min(1),
@@ -27,11 +29,16 @@ const getEventsSchema = z.object({
   date_to: z.string().date().optional(),
   sort_by: z.enum(GET_EVENTS_SORT_OPTIONS),
   sort_order: z.enum(GET_EVENTS_SORT_ORDERS),
+  include: z.string().optional(), 
 });
 
 export type GetEventsData = z.infer<typeof getEventsSchema>;
 export type GetEventsDataSuccess = {
-  events: GetEventDataSuccess["event"][];
+  events: GetEventDataSuccess["event"][] & {
+    attendance_slots?: Array<
+        Pick<Tables<"attendance_slots">, "id" | "trigger_time" | "type" | "fine_amount" | "created_at">
+      >;
+  };
   pagination: {
     page: number;
     limit: number;
@@ -52,8 +59,11 @@ export type GetEventsDataSuccess = {
     by: string;
     order: string;
   };
+  included: string[];
 };
+
 export type GetEventsDataError = { error: { code: number; message: string } };
+
 
 // Note: For non-api response type variable names, do not use "Data" name, ex: GetEventsData{success | error | request}
 // The types below are non-api response types, variable names will omit "Data"
@@ -61,6 +71,8 @@ export type GetEventsStatusType =
   (typeof Constants.public.Enums.Status)[number];
 export type GetEventsSortType = (typeof GET_EVENTS_SORT_OPTIONS)[number];
 export type GetEventsOrderType = (typeof GET_EVENTS_SORT_ORDERS)[number];
+export type GetEventsIncludeType = (typeof GET_EVENTS_INCLUDE_OPTIONS)[number];
+
 
 // -----------------------------
 // GetEventsRequest Class
@@ -88,10 +100,35 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
       const paramsWithDefaults = {
         page: 1,
         limit: 10,
-        sort_by: "created_at" as const,
-        sort_order: "desc" as const,
+        sort_by: "date" as const,
+        sort_order: "asc" as const,
+        include: undefined,
         ...queryParams,
       };
+
+      if(queryParams.include) {
+        const includeItems = queryParams.include.split(',').map(item => item.trim());
+        const validIncludes = GET_EVENTS_INCLUDE_OPTIONS;
+        type ValidInclude = typeof validIncludes[number];
+
+        function isValidInclude(item: string): item is ValidInclude {
+          return (validIncludes as readonly string[]).includes(item);
+        }
+
+        const invalidIncludes = includeItems.filter(item => !isValidInclude(item));
+
+        if (invalidIncludes.length > 0) {
+          return NextResponse.json(
+            {
+              error: {
+                code: 400,
+                message: `Invalid include parameter(s): ${invalidIncludes.join(', ')}. Valid options: ${validIncludes.join(', ')}`,
+              },
+            },
+            { status: 400 }
+          );
+        }
+      }
 
       this.validatedData = this.rules().parse(paramsWithDefaults);
       return null;
@@ -180,6 +217,19 @@ export class GetEventsRequest extends BaseRequest<GetEventsData> {
       data.status ||
       data.semester_id
     );
+  }
+
+  getInclude(): string | undefined {
+    return this.validated().include;
+  }
+
+  getIncludeArray(): string[] {
+    const include = this.getInclude();
+    return include ? include.split(',').map(item => item.trim()) : [];
+  }
+
+  includesAttendanceSlots(): boolean {
+    return this.getIncludeArray().includes('attendance-slots');
   }
 
   getActiveFilters() {

@@ -16,10 +16,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = await createClient();
+    
+    // Check if attendance-slots should be included
+    const url = new URL(request.url);
+    const includeParam = url.searchParams.get('include');
+    const includeAttendanceSlots = includeParam?.includes('attendance-slots');
 
-    // Build the query with relationships
-    let query = supabase.from("events").select(
-      `
+    // Build the base query with relationships
+    let selectQuery = `
         *,
         organizations!organization_id(
           id,
@@ -29,9 +33,31 @@ export async function GET(request: NextRequest) {
           id,
           name
         )
-      `,
-      { count: "exact" }
-    );
+      `;
+
+    // If attendance-slots are requested, add them to the select query
+    if (includeAttendanceSlots) {
+      selectQuery = `
+        *,
+        organizations!organization_id(
+          id,
+          name
+        ),
+        semesters!semester_id(
+          id,
+          name
+        ),
+        attendance_slots(
+          id,
+          trigger_time,
+          type,
+          fine_amount,
+          created_at
+        )
+      `;
+    }
+
+    let query = supabase.from("events").select(selectQuery, { count: "exact" });
 
     // Apply filters
     if (customRequest.getSearch()) {
@@ -111,17 +137,10 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil((count || 0) / customRequest.getLimit());
     const hasNextPage = customRequest.getPage() < totalPages;
     const hasPrevPage = customRequest.getPage() > 1;
-
+    
     return NextResponse.json(
       {
-        events:
-          data?.map(event =>
-            Object.fromEntries(
-              Object.entries(event).sort(([keyA], [keyB]) =>
-                keyA.localeCompare(keyB)
-              )
-            )
-          ) || [],
+        events: data,
         pagination: {
           page: customRequest.getPage(),
           limit: customRequest.getLimit(),
