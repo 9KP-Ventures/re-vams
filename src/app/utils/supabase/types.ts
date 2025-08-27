@@ -656,28 +656,63 @@ export type Database = {
     }
     Functions: {
       create_event_with_attendance_slots: {
-        Args:
-          | {
-              p_attendance_slots?: Json
-              p_custom_email_message: string
-              p_custom_email_subject: string
-              p_date: string
-              p_name: string
-              p_organization_id: number
-              p_semester_id: number
-              p_status?: Database["public"]["Enums"]["status"]
-            }
-          | {
-              p_attendance_slots?: Json
-              p_custom_email_message: string
-              p_custom_email_subject: string
-              p_date: string
-              p_name: string
-              p_organization_id: number
-              p_semester_id: number
-              p_status?: string
-            }
+        Args: {
+          p_attendance_slots?: Json
+          p_custom_email_message: string
+          p_custom_email_subject: string
+          p_date: string
+          p_name: string
+          p_organization_id: number
+          p_semester_id: number
+          p_status?: Database["public"]["Enums"]["Status"]
+        }
         Returns: Json
+      }
+      get_event_attendance_data: {
+        Args: { p_event_id: number }
+        Returns: Json
+      }
+      get_event_attendance_table: {
+        Args: { p_event_id: number }
+        Returns: {
+          event_custom_email_message: string
+          event_custom_email_subject: string
+          event_date: string
+          event_id: number
+          event_name: string
+          record_id: number
+          recorded_time: string
+          slot_fine_amount: number
+          slot_id: number
+          slot_trigger_time: string
+          slot_type: string
+          student_email: string
+          student_first_name: string
+          student_id: string
+          student_last_name: string
+          student_middle_name: string
+        }[]
+      }
+      get_event_attendance_table2: {
+        Args: { p_event_id: number }
+        Returns: {
+          event_custom_email_message: string
+          event_custom_email_subject: string
+          event_date: string
+          event_id: number
+          event_name: string
+          record_id: number
+          recorded_time: string
+          slot_fine_amount: number
+          slot_id: number
+          slot_trigger_time: string
+          slot_type: string
+          student_email: string
+          student_first_name: string
+          student_id: string
+          student_last_name: string
+          student_middle_name: string
+        }[]
       }
     }
     Enums: {
