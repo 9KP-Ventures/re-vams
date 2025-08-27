@@ -2,18 +2,24 @@ import { z, ZodError } from "zod";
 import { NextResponse } from "next/server";
 import { FormRequest } from "../base-request";
 import { GetEventDataSuccess } from "./get+delete";
-import { Constants } from "@/app/utils/supabase/types";
+import { Constants, Tables } from "@/app/utils/supabase/types";
 
 // -----------------------------
 // Schema Definitions
 // -----------------------------
 
+const attendanceSlotInputSchema = z.object({
+  trigger_time: z.string().time(), // "08:00" format
+  type: z.enum(["TIME_IN", "TIME_OUT"]),
+  fine_amount: z.number().min(0),
+});
+
 export const createEventSchema = z
   .object({
     name: z.string().min(1, "Event name is required and cannot be empty"),
     date: z.string().date("Event date must be a valid date (YYYY-MM-DD)"),
-    custom_email_subject: z.string().min(1, "Email subject is required"),
-    custom_email_message: z.string().min(1, "Email message is required"),
+    custom_email_subject: z.string().min(1, "Email subject is required").optional(),
+    custom_email_message: z.string().min(1, "Email message is required").optional(),
     organization_id: z
       .number()
       .int("Organization ID must be an integer")
@@ -23,14 +29,25 @@ export const createEventSchema = z
       .int("Semester ID must be an integer")
       .min(1, "Semester ID is required"),
     status: z.enum([...Constants.public.Enums.Status] as const, {}),
+    attendance_slots: z
+      .array(attendanceSlotInputSchema)
+      .min(1, "At least one attendance slot is required"),
   })
   .passthrough();
 
-export type CreateEventData = z.infer<typeof createEventSchema>;
-export type CreateEventDataSuccess = {
-  event: GetEventDataSuccess["event"];
-};
-export type CreateEventDataError = { error: { code: number; message: string } };
+  export type AttendanceSlotInput = z.infer<typeof attendanceSlotInputSchema>;
+  export type CreateEventData = z.infer<typeof createEventSchema>;
+  export type CreateEventDataSuccess = {
+    event: GetEventDataSuccess["event"];
+    attendance_slots: Array<Omit<
+    Tables<"attendance_slots">,
+    "created_at" & "updated_at" & "event_id"
+  >>;
+    message?: string;
+  };
+  export type CreateEventDataError = {
+    error: { code: number; message: string };
+  };
 
 // -----------------------------
 // CreateEventRequest Class
@@ -60,6 +77,14 @@ export class CreateEventRequest extends FormRequest<CreateEventData> {
         return this.errorResponse("This action is unauthorized.", 403);
       }
 
+      if (!body.attendance_slots || body.attendance_slots.length === 0) {
+        body.attendance_slots = [{
+          trigger_time: "08:00",
+          type: "TIME_IN",
+          fine_amount: 0
+        }];
+      }
+
       this.validatedData = this.rules().parse(body);
       return null;
     } catch (error) {
@@ -84,6 +109,19 @@ export class CreateEventRequest extends FormRequest<CreateEventData> {
       field,
       code: firstError.code,
     });
+
+    if (field === "attendance_slots") {
+      const slotPath = firstError.path;
+      if (slotPath.length > 1) {
+        const slotIndex = slotPath[1];
+        const slotField = slotPath[2];
+        return this.errorResponse(
+          `Invalid attendance slot at index ${slotIndex}: ${slotField} - ${firstError.message}`,
+          400
+        );
+      }
+      return this.errorResponse(firstError.message, 400);
+    }
 
     return this.getFieldErrorResponse(firstError, field);
   }
@@ -114,7 +152,7 @@ export class CreateEventRequest extends FormRequest<CreateEventData> {
     }
 
     if (
-      ["name", "custom_email_subject", "custom_email_message"].includes(
+      ["name"].includes(
         field as string
       ) &&
       this.isMissingFieldError(firstError)
@@ -172,15 +210,19 @@ export class CreateEventRequest extends FormRequest<CreateEventData> {
     return this.validated().status;
   }
 
-  getCustomEmailSubject(): string {
+  getCustomEmailSubject(): string | undefined{
     return this.validated().custom_email_subject;
   }
 
-  getCustomEmailMessage(): string {
+  getCustomEmailMessage(): string | undefined {
     return this.validated().custom_email_message;
   }
 
   getOrganizationId(): number {
     return this.validated().organization_id;
+  }
+
+  getAttendanceSlots(): AttendanceSlotInput[] {
+    return this.validated().attendance_slots;
   }
 }
